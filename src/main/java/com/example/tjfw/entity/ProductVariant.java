@@ -2,6 +2,8 @@ package com.example.tjfw.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "product_variants")
 public class ProductVariant {
@@ -13,16 +15,25 @@ public class ProductVariant {
     @JoinColumn(name = "product_id")
     private Product product;
     private String color;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal salePrice = BigDecimal.ZERO;
     private int size;
     private int quantity;
-
     protected ProductVariant() {}
-
-    public ProductVariant(Product product, String color, int size, int quantity) {
+    public ProductVariant(Product product, String color, int size, int quantity, BigDecimal costPrice) {
         this.product = product;
         this.color = color;
         this.size = size;
         this.quantity = quantity;
+        this.salePrice = costPrice;
+    }
+
+    public BigDecimal getSalePrice() {
+        return salePrice;
+    }
+
+    public void setSalePrice(BigDecimal salePrice) {
+        this.salePrice = salePrice;
     }
 
     public Long getProductVariantId() {
@@ -61,7 +72,7 @@ public class ProductVariant {
         this.quantity = quantity;
     }
 
-   //removed product from toString since it lazy loads
+    //removed product from toString since it lazy loads
     @Override
     public String toString() {
         return "ProductVariant{" +
@@ -69,6 +80,7 @@ public class ProductVariant {
                 ", color='" + color + '\'' +
                 ", size=" + size +
                 ", quantity=" + quantity +
+                ", sale price=" + salePrice +
                 '}';
     }
 }

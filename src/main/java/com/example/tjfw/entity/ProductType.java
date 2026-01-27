@@ -6,7 +6,7 @@ public enum ProductType {
     HIJAB("Hijab"),
     DRESS("Dress"),
     JILBAB("Jilbaab"),
-    KHIMAR("Qimaar"),
+    KHIMAR("Khimar"),
     THOWB("Thowb");
 
     private final String displayName;
