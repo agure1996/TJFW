@@ -27,10 +27,6 @@ public class Product {
         return id;
     }
 
-    public void setProductId(Long id) {
-        this.id = id;
-    }
-
     public String getProductName() {
         return productName;
     }
@@ -47,12 +43,12 @@ public class Product {
         this.productType = productType;
     }
 
-    public String getDescription() {
+    public String getProductDescription() {
         return productDescription;
     }
 
-    public void setDescription(String description) {
-        productDescription = description;
+    public void setDescription(String productDescription) {
+        this.productDescription = productDescription;
     }
 
 
@@ -60,9 +56,9 @@ public class Product {
     public String toString() {
         return "Product{" +
                 "id=" + id +
-                ", productName='" + productName + '\'' +
-                ", productType=" + productType +
-                ", Description='" + productDescription + '\'' +
+                ", Product name='" + productName + '\'' +
+                ", Product Type=" + productType +
+                ", Product Description='" + productDescription + '\'' +
                 '}';
     }
 
