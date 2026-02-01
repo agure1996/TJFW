@@ -9,18 +9,18 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String product_name;
+    private String productName;
     @Enumerated(EnumType.STRING)
-    private ProductType product_type;
-    private String product_description;
+    private ProductType productType;
+    private String productDescription;
 
     protected Product() {
     }
 
-    public Product(String product_name, ProductType product_type, String product_description) {
-        this.product_name = product_name;
-        this.product_type = product_type;
-        this.product_description = product_description;
+    public Product(String productName, ProductType productType, String productDescription) {
+        this.productName = productName;
+        this.productType = productType;
+        this.productDescription = productDescription;
     }
 
     public Long getProductId() {
@@ -31,28 +31,28 @@ public class Product {
         this.id = id;
     }
 
-    public String getProduct_name() {
-        return product_name;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setProduct_name(String product_name) {
-        this.product_name = product_name;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public ProductType getProduct_type() {
-        return product_type;
+    public ProductType getProductType() {
+        return productType;
     }
 
-    public void setProduct_type(ProductType product_type) {
-        this.product_type = product_type;
+    public void setProductType(ProductType productType) {
+        this.productType = productType;
     }
 
     public String getDescription() {
-        return product_description;
+        return productDescription;
     }
 
     public void setDescription(String description) {
-        product_description = description;
+        productDescription = description;
     }
 
 
@@ -60,9 +60,9 @@ public class Product {
     public String toString() {
         return "Product{" +
                 "id=" + id +
-                ", product_name='" + product_name + '\'' +
-                ", product_type=" + product_type +
-                ", Description='" + product_description + '\'' +
+                ", productName='" + productName + '\'' +
+                ", productType=" + productType +
+                ", Description='" + productDescription + '\'' +
                 '}';
     }
 
