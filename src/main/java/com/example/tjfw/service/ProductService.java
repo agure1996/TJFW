@@ -17,6 +17,11 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
+    //Created to stop code duplication
+    private Product getProductOrThrow(Long id){
+        return productRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Product not found"));
+    }
     public Product createNewProduct(Product product) {
         if (productRepository.existsByProductName(product.getProductName())) {
             throw new AlreadyExistsException("Product already exists");
@@ -24,13 +29,12 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public Optional<Product> findById(Long id) {
-        return productRepository.findById(id);
+    public Product findById(Long id) {
+        return getProductOrThrow(id);
     }
 
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Product with id: " + id + " not found"));
+        Product product = getProductOrThrow(id);
         productRepository.delete(product);
     }
 
