@@ -1,4 +1,4 @@
-package com.example.tjfw.dto;
+package com.example.tjfw.dto.product;
 
 //DTO for product Requests
 public class ProductRequestDTO {
