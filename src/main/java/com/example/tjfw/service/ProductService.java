@@ -6,7 +6,7 @@ import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class ProductService {
@@ -22,6 +22,11 @@ public class ProductService {
         return productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
     }
+
+    public List<Product> findAllProducts(){
+        return productRepository.findAll();
+    }
+
     public Product createNewProduct(Product product) {
         if (productRepository.existsByProductName(product.getProductName())) {
             throw new AlreadyExistsException("Product already exists");
@@ -37,5 +42,4 @@ public class ProductService {
         Product product = getProductOrThrow(id);
         productRepository.delete(product);
     }
-
 }
