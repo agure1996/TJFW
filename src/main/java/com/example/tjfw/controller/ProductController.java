@@ -23,11 +23,6 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/hi")
-    public String sayHi() {
-        return "Hello World!";
-    }
-
     @GetMapping()
     public ResponseEntity<ApiResponse<List<ProductRequestDTO>>> findAll() {
 

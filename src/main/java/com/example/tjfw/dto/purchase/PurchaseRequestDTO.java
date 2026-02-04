@@ -1,35 +1,20 @@
-package com.example.tjfw.entity;
+package com.example.tjfw.dto.purchase;
 
-import jakarta.persistence.*;
+import com.example.tjfw.entity.PurchaseType;
+import com.example.tjfw.entity.Supplier;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "purchases")
-public class Purchase {
+public class PurchaseRequestDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "supplier_id")
     private Supplier supplier;
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PurchaseType purchaseType;
-    @Column(nullable = false)
     private LocalDateTime purchaseDate;
 
-    protected Purchase() {
-    }
-    public Purchase(Supplier supplier, PurchaseType purchaseType, LocalDateTime purchaseDate) {
+    public PurchaseRequestDTO(Supplier supplier, PurchaseType purchaseType, LocalDateTime purchaseDate){
         this.supplier = supplier;
         this.purchaseType = purchaseType;
         this.purchaseDate = purchaseDate;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public Supplier getSupplier() {
@@ -54,14 +39,5 @@ public class Purchase {
 
     public void setPurchaseDate(LocalDateTime purchaseDate) {
         this.purchaseDate = purchaseDate;
-    }
-
-    @Override
-    public String toString() {
-        return "Purchase{" +
-                "id=" + id +
-                ", purchaseType=" + purchaseType +
-                ", purchaseDate=" + purchaseDate +
-                '}';
     }
 }

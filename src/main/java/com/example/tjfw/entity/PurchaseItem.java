@@ -18,7 +18,7 @@ public class PurchaseItem {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "product_variant_id")
-    private ProductVariant product_variant;
+    private ProductVariant productVariant;
 
     @Column(nullable = false)
     private int quantity;
@@ -31,7 +31,7 @@ public class PurchaseItem {
 
     public PurchaseItem(Purchase purchase, ProductVariant productVariant, int quantity, BigDecimal costPrice) {
         this.purchase = purchase;
-        this.product_variant = productVariant;
+        this.productVariant = productVariant;
         this.quantity = quantity;
         this.costPrice = costPrice;
     }
@@ -45,7 +45,7 @@ public class PurchaseItem {
     }
 
     public ProductVariant getProductVariant() {
-        return product_variant;
+        return productVariant;
     }
 
     public int getQuantity() {

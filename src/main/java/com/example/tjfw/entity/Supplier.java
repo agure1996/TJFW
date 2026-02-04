@@ -8,39 +8,39 @@ public class Supplier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long supplier_id;
-    private String supplier_name;
+    private Long supplierId;
+    private String supplierName;
     @Column(nullable = false)
-    private String supplier_contactInfo;
+    private String supplierContactInfo;
     private String notes;
 
     protected Supplier() {
     }
 
     public Supplier(String name, String contactInfo, String notes) {
-        this.supplier_name = name;
-        this.supplier_contactInfo = contactInfo;
+        this.supplierName = name;
+        this.supplierContactInfo = contactInfo;
         this.notes = notes;
     }
 
-    public String getSupplier_contactInfo() {
-        return supplier_contactInfo;
+    public String getSupplierContactInfo() {
+        return supplierContactInfo;
     }
 
-    public Long getSupplier_id() {
-        return supplier_id;
+    public Long getSupplierId() {
+        return supplierId;
     }
 
-    public void setSupplier_id(Long supplier_id) {
-        this.supplier_id = supplier_id;
+    public void setSupplierId(Long supplier_id) {
+        this.supplierId = supplier_id;
     }
 
-    public String getSupplier_name() {
-        return supplier_name;
+    public String getSupplierName() {
+        return supplierName;
     }
 
-    public void setSupplier_name(String supplier_name) {
-        this.supplier_name = supplier_name;
+    public void setSupplierName(String supplier_name) {
+        this.supplierName = supplier_name;
     }
 
     public String getNotes() {
@@ -54,8 +54,8 @@ public class Supplier {
     @Override
     public String toString() {
         return "Supplier{" +
-                "id=" + supplier_id +
-                ", name='" + supplier_name + '\'' +
+                "id=" + supplierId +
+                ", name='" + supplierName + '\'' +
                 '}';
     }
 
