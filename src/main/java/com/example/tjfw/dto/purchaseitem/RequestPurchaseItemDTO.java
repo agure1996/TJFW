@@ -1,38 +1,37 @@
 package com.example.tjfw.dto.purchaseitem;
 
-import com.example.tjfw.entity.ProductVariant;
-import com.example.tjfw.entity.Purchase;
-
 import java.math.BigDecimal;
 
 public class RequestPurchaseItemDTO {
 
-    private Purchase purchase;
-    private ProductVariant productVariant;
+    private Long purchaseId;
+    private Long productVariantId;
     private int quantity;
     private BigDecimal costPrice;
 
-    public RequestPurchaseItemDTO(Purchase purchase, ProductVariant productVariant, int quantity, BigDecimal costPrice) {
-        this.purchase = purchase;
-        this.productVariant = productVariant;
+    public RequestPurchaseItemDTO() {}
+
+    public RequestPurchaseItemDTO(Long purchaseId, Long productVariantId, int quantity, BigDecimal costPrice) {
+        this.purchaseId = purchaseId;
+        this.productVariantId = productVariantId;
         this.quantity = quantity;
         this.costPrice = costPrice;
     }
 
-    public ProductVariant getProductVariant() {
-        return productVariant;
+    public Long getPurchaseId() {
+        return purchaseId;
     }
 
-    public void setProductVariant(ProductVariant productVariant) {
-        this.productVariant = productVariant;
+    public void setPurchaseId(Long purchaseId) {
+        this.purchaseId = purchaseId;
     }
 
-    public Purchase getPurchase() {
-        return purchase;
+    public Long getProductVariantId() {
+        return productVariantId;
     }
 
-    public void setPurchase(Purchase purchase) {
-        this.purchase = purchase;
+    public void setProductVariantId(Long productVariantId) {
+        this.productVariantId = productVariantId;
     }
 
     public int getQuantity() {
@@ -50,5 +49,4 @@ public class RequestPurchaseItemDTO {
     public void setCostPrice(BigDecimal costPrice) {
         this.costPrice = costPrice;
     }
-
 }

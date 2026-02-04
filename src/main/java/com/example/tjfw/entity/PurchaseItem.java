@@ -20,14 +20,33 @@ public class PurchaseItem {
     @JoinColumn(name = "product_variant_id")
     private ProductVariant productVariant;
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setPurchase(Purchase purchase) {
+        this.purchase = purchase;
+    }
+
+    public void setProductVariant(ProductVariant productVariant) {
+        this.productVariant = productVariant;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setCostPrice(BigDecimal costPrice) {
+        this.costPrice = costPrice;
+    }
+
     @Column(nullable = false)
     private int quantity;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal costPrice;
 
-    protected PurchaseItem() {
-    }
+    public PurchaseItem() {}
 
     public PurchaseItem(Purchase purchase, ProductVariant productVariant, int quantity, BigDecimal costPrice) {
         this.purchase = purchase;

@@ -20,8 +20,7 @@ public class Purchase {
     @Column(nullable = false)
     private LocalDateTime purchaseDate;
 
-    protected Purchase() {
-    }
+    protected Purchase() {}
     public Purchase(Supplier supplier, PurchaseType purchaseType, LocalDateTime purchaseDate) {
         this.supplier = supplier;
         this.purchaseType = purchaseType;
