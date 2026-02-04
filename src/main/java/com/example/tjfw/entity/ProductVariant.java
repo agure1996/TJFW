@@ -19,6 +19,8 @@ public class ProductVariant {
     private BigDecimal salePrice = BigDecimal.ZERO;
     private int size;
     private int quantity;
+    @Column(unique = true, nullable = false)
+    private String sku;
     protected ProductVariant() {}
     public ProductVariant(Product product, String color, int size, int quantity, BigDecimal costPrice) {
         this.product = product;
@@ -27,6 +29,9 @@ public class ProductVariant {
         this.quantity = quantity;
         this.salePrice = costPrice;
     }
+
+    public String getSku() { return sku; }
+    public void setSku(String sku) { this.sku = sku; }
 
     public BigDecimal getSalePrice() {
         return salePrice;

@@ -17,13 +17,16 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    //Created to stop code duplication
-    private Product getProductOrThrow(Long id){
-        return productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Product not found"));
+    public Product findById(Long id) {
+        return getProductOrThrow(id);
     }
 
-    public List<Product> findAllProducts(){
+    //Created to stop code duplication
+    private Product getProductOrThrow(Long id) {
+        return productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
+    }
+
+    public List<Product> findAllProducts() {
         return productRepository.findAll();
     }
 
@@ -32,10 +35,6 @@ public class ProductService {
             throw new AlreadyExistsException("Product already exists");
         }
         return productRepository.save(product);
-    }
-
-    public Product findById(Long id) {
-        return getProductOrThrow(id);
     }
 
     public void deleteProduct(Long id) {

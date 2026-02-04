@@ -1,62 +1,38 @@
 package com.example.tjfw.dto.productvariant;
 
-import com.example.tjfw.entity.Product;
-
 import java.math.BigDecimal;
 
 public class RequestProductVariantDTO {
 
-    private Product product;
+    private Long productId;
     private String color;
     private BigDecimal salePrice;
     private int size;
     private int quantity;
 
-    public RequestProductVariantDTO(Product product, String color, BigDecimal salePrice, int size, int quantity) {
-        this.product = product;
+    public RequestProductVariantDTO() {}
+
+    public RequestProductVariantDTO(Long productId, String color, BigDecimal salePrice, int size, int quantity) {
+        this.productId = productId;
         this.color = color;
         this.salePrice = salePrice;
         this.size = size;
         this.quantity = quantity;
     }
 
-    public Product getProduct() {
-        return product;
-    }
+    // getters and setters
+    public Long getProductId() { return productId; }
+    public void setProductId(Long productId) { this.productId = productId; }
 
-    public void setProduct(Product product) {
-        this.product = product;
-    }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 
-    public String getColor() {
-        return color;
-    }
+    public BigDecimal getSalePrice() { return salePrice; }
+    public void setSalePrice(BigDecimal salePrice) { this.salePrice = salePrice; }
 
-    public void setColor(String color) {
-        this.color = color;
-    }
+    public int getSize() { return size; }
+    public void setSize(int size) { this.size = size; }
 
-    public BigDecimal getSalePrice() {
-        return salePrice;
-    }
-
-    public void setSalePrice(BigDecimal salePrice) {
-        this.salePrice = salePrice;
-    }
-
-    public int getSize() {
-        return size;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }
