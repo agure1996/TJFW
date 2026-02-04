@@ -9,6 +9,7 @@ public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long supplierId;
+    @Column(nullable = false)
     private String supplierName;
     @Column(nullable = false)
     private String supplierContactInfo;
@@ -17,9 +18,9 @@ public class Supplier {
     protected Supplier() {
     }
 
-    public Supplier(String name, String contactInfo, String notes) {
-        this.supplierName = name;
-        this.supplierContactInfo = contactInfo;
+    public Supplier(String supplierName, String supplierContactInfo, String notes) {
+        this.supplierName = supplierName;
+        this.supplierContactInfo = supplierContactInfo;
         this.notes = notes;
     }
 
@@ -27,20 +28,20 @@ public class Supplier {
         return supplierContactInfo;
     }
 
-    public Long getSupplierId() {
-        return supplierId;
+    public void setSupplierContactInfo(String supplierContactInfo) {
+        this.supplierContactInfo = supplierContactInfo;
     }
 
-    public void setSupplierId(Long supplier_id) {
-        this.supplierId = supplier_id;
+    public Long getSupplierId() {
+        return supplierId;
     }
 
     public String getSupplierName() {
         return supplierName;
     }
 
-    public void setSupplierName(String supplier_name) {
-        this.supplierName = supplier_name;
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
     }
 
     public String getNotes() {
@@ -53,10 +54,7 @@ public class Supplier {
 
     @Override
     public String toString() {
-        return "Supplier{" +
-                "id=" + supplierId +
-                ", name='" + supplierName + '\'' +
-                '}';
+        return "Supplier{" + "id=" + supplierId + ", name='" + supplierName + '\'' + '}';
     }
 
 }
