@@ -1,7 +1,7 @@
 package com.example.tjfw.controller;
 
 import com.example.tjfw.dto.purchase.PurchaseDTO;
-import com.example.tjfw.dto.purchase.PurchaseRequestDTO;
+import com.example.tjfw.dto.purchase.RequestPurchaseDTO;
 import com.example.tjfw.response.ApiResponse;
 import com.example.tjfw.service.PurchaseService;
 import jakarta.validation.Valid;
@@ -18,7 +18,7 @@ public class PurchaseController {
     public PurchaseController(PurchaseService purchaseService) {this.purchaseService = purchaseService;}
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PurchaseDTO>> createPurchase(@Valid @RequestBody PurchaseRequestDTO request) {
+    public ResponseEntity<ApiResponse<PurchaseDTO>> createPurchase(@Valid @RequestBody RequestPurchaseDTO request) {
         PurchaseDTO created = purchaseService.createPurchase(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Purchase created", created));
     }
@@ -36,7 +36,7 @@ public class PurchaseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<PurchaseDTO>> updatePurchase(@PathVariable Long id, @Valid @RequestBody PurchaseRequestDTO request) {
+    public ResponseEntity<ApiResponse<PurchaseDTO>> updatePurchase(@PathVariable Long id, @Valid @RequestBody RequestPurchaseDTO request) {
         // Call service to update the purchase
         PurchaseDTO updatedPurchase = purchaseService.updatePurchase(id, request);
         return ResponseEntity.ok(new ApiResponse<>("Purchase updated successfully", updatedPurchase));

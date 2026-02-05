@@ -2,7 +2,7 @@ package com.example.tjfw.controller;
 
 import com.example.tjfw.dto.mapper.ProductVariantMapper;
 import com.example.tjfw.dto.product.ProductDTO;
-import com.example.tjfw.dto.product.ProductRequestDTO;
+import com.example.tjfw.dto.product.RequestProductDTO;
 import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.dto.productvariant.RequestProductVariantDTO;
 import com.example.tjfw.entity.Product;
@@ -56,7 +56,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@Valid @RequestBody ProductRequestDTO request) {
+    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@Valid @RequestBody RequestProductDTO request) {
         // Convert string to enum
         ProductType type;
         try {
@@ -74,9 +74,9 @@ public class ProductController {
 
 
     @PostMapping("/bulk")
-    public ResponseEntity<ApiResponse<List<ProductDTO>>> createProductBulk(@Valid @RequestBody List<ProductRequestDTO> requests) {
+    public ResponseEntity<ApiResponse<List<ProductDTO>>> createProductBulk(@Valid @RequestBody List<RequestProductDTO> requests) {
         List<ProductDTO> createdList = new ArrayList<>();
-        for (ProductRequestDTO request : requests) {
+        for (RequestProductDTO request : requests) {
             ProductType type;
             try {
                 type = ProductType.valueOf(request.getProductType().toUpperCase());

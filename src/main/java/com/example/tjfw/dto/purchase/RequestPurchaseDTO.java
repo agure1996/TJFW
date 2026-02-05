@@ -6,15 +6,15 @@ import com.example.tjfw.entity.PurchaseType;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class PurchaseRequestDTO {
+public class RequestPurchaseDTO {
     private Long supplierId;
     private PurchaseType purchaseType;
     private LocalDateTime purchaseDate;
     private List<RequestPurchaseItemDTO> items;
 
-    public PurchaseRequestDTO() {}
+    public RequestPurchaseDTO() {}
 
-    public PurchaseRequestDTO(Long supplierId, PurchaseType purchaseType, LocalDateTime purchaseDate, List<RequestPurchaseItemDTO> items) {
+    public RequestPurchaseDTO(Long supplierId, PurchaseType purchaseType, LocalDateTime purchaseDate, List<RequestPurchaseItemDTO> items) {
         this.supplierId = supplierId;
         this.purchaseType = purchaseType;
         this.purchaseDate = purchaseDate;

@@ -2,7 +2,7 @@ package com.example.tjfw.service;
 
 import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.dto.purchase.PurchaseDTO;
-import com.example.tjfw.dto.purchase.PurchaseRequestDTO;
+import com.example.tjfw.dto.purchase.RequestPurchaseDTO;
 import com.example.tjfw.dto.purchaseitem.PurchaseItemDTO;
 import com.example.tjfw.dto.purchaseitem.RequestPurchaseItemDTO;
 import com.example.tjfw.dto.supplier.SupplierDTO;
@@ -74,7 +74,7 @@ public class PurchaseService {
     // -------------------------
     // Methods to support CRUD functions
     // -------------------------
-    public PurchaseDTO createPurchase(PurchaseRequestDTO request) {
+    public PurchaseDTO createPurchase(RequestPurchaseDTO request) {
         Supplier supplier = getSupplierOrThrow(request.getSupplierId());
 
         Purchase purchase = new Purchase();
@@ -141,7 +141,7 @@ public class PurchaseService {
         return result;
     }
 
-    public PurchaseDTO updatePurchase(Long id, PurchaseRequestDTO request) {
+    public PurchaseDTO updatePurchase(Long id, RequestPurchaseDTO request) {
         Purchase purchase = getPurchaseOrThrow(id);
 
         // Update supplier
