@@ -13,7 +13,6 @@ import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.PurchaseRepository;
 import com.example.tjfw.repository.SupplierRepository;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,18 +30,53 @@ public class PurchaseService {
         this.purchaseItemService = purchaseItemService;
     }
 
+    // -------------------------
+    // Internal helpers
+    // -------------------------
     private Purchase getPurchaseOrThrow(Long id) {
-        return purchaseRepository.findById(id).orElseThrow(() -> new NotFoundException("Purchase with id " + id + " not found"));
+        return purchaseRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Purchase with id " + id + " not found"));
     }
 
     private Supplier getSupplierOrThrow(Long id) {
-        return supplierRepository.findById(id).orElseThrow(() -> new NotFoundException("Supplier with id " + id + " not found"));
+        return supplierRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Supplier with id " + id + " not found"));
     }
 
+    private SupplierDTO mapSupplierToDTO(Supplier supplier) {
+        return new SupplierDTO(
+                supplier.getSupplierId(),
+                supplier.getSupplierName(),
+                supplier.getSupplierContactInfo(),
+                supplier.getNotes()
+        );
+    }
+
+    private PurchaseItemDTO mapPurchaseItemToDTO(PurchaseItem item) {
+        ProductVariantDTO variantDTO = new ProductVariantDTO(
+                item.getProductVariant().getProductVariantId(),
+                item.getProductVariant().getProduct().getProductId(),
+                item.getProductVariant().getProduct().getProductName(),
+                item.getProductVariant().getColor(),
+                item.getProductVariant().getSalePrice(),
+                item.getProductVariant().getSize(),
+                item.getProductVariant().getQuantity(),
+                item.getProductVariant().getSku()
+        );
+
+        return new PurchaseItemDTO(
+                item.getId(),
+                variantDTO,
+                item.getQuantity(),
+                item.getCostPrice()
+        );
+    }
+    // -------------------------
+    // Methods to support CRUD functions
+    // -------------------------
     public PurchaseDTO createPurchase(PurchaseRequestDTO request) {
         Supplier supplier = getSupplierOrThrow(request.getSupplierId());
 
-        // Create purchase entity
         Purchase purchase = new Purchase();
         purchase.setSupplier(supplier);
         purchase.setPurchaseDate(request.getPurchaseDate());
@@ -54,60 +88,80 @@ public class PurchaseService {
         List<PurchaseItemDTO> itemDTOs = new ArrayList<>();
         if (request.getItems() != null) {
             for (RequestPurchaseItemDTO itemReq : request.getItems()) {
-                PurchaseItem item = purchaseItemService.addPurchaseItem(purchase.getId(), itemReq.getProductVariantId(), itemReq.getQuantity(), itemReq.getCostPrice());
+                PurchaseItem item = purchaseItemService.addPurchaseItem(
+                        purchase.getId(),
+                        itemReq.getProductVariantId(),
+                        itemReq.getQuantity(),
+                        itemReq.getCostPrice()
+                );
                 itemDTOs.add(mapPurchaseItemToDTO(item));
             }
         }
 
         BigDecimal totalAmount = calculateTotalAmount(purchase);
 
-        return new PurchaseDTO(purchase.getId(), mapSupplierToDTO(supplier), purchase.getPurchaseType(), purchase.getPurchaseDate(), totalAmount, itemDTOs);
-    }
-
-    private SupplierDTO mapSupplierToDTO(Supplier supplier) {
-        return new SupplierDTO(supplier.getSupplierId(), supplier.getSupplierName(), supplier.getSupplierContactInfo(), supplier.getNotes());
-    }
-
-    private PurchaseItemDTO mapPurchaseItemToDTO(PurchaseItem item) {
-        ProductVariantDTO variantDTO = new ProductVariantDTO(item.getProductVariant().getProductVariantId(),        // 1
-                item.getProductVariant().getProduct().getProductId(),  // 2
-                item.getProductVariant().getProduct().getProductName(),// 3
-                item.getProductVariant().getColor(),                   // 4
-                item.getProductVariant().getSalePrice(),               // 5
-                item.getProductVariant().getSize(),                    // 6
-                item.getProductVariant().getQuantity(),                // 7
-                item.getProductVariant().getSku()                      // 8
-        );
-
-        return new PurchaseItemDTO(item.getId(),        // purchaseItemId
-                variantDTO,          // nested ProductVariantDTO
-                item.getQuantity(),  // quantity
-                item.getCostPrice()  // costPrice
+        return new PurchaseDTO(
+                purchase.getId(),
+                mapSupplierToDTO(supplier),
+                purchase.getPurchaseType(),
+                purchase.getPurchaseDate(),
+                totalAmount,
+                itemDTOs
         );
     }
-
 
     public PurchaseDTO getPurchaseById(Long id) {
         Purchase purchase = getPurchaseOrThrow(id);
 
-        List<PurchaseItemDTO> itemDTOs = purchase.getItems().stream().map(this::mapPurchaseItemToDTO).toList();
+        List<PurchaseItemDTO> itemDTOs = new ArrayList<>();
+        if (purchase.getItems() != null) {
+            for (PurchaseItem item : purchase.getItems()) {
+                itemDTOs.add(mapPurchaseItemToDTO(item));
+            }
+        }
 
         BigDecimal totalAmount = calculateTotalAmount(purchase);
 
-        return new PurchaseDTO(purchase.getId(), mapSupplierToDTO(purchase.getSupplier()), purchase.getPurchaseType(), purchase.getPurchaseDate(), totalAmount, itemDTOs);
+        return new PurchaseDTO(
+                purchase.getId(),
+                mapSupplierToDTO(purchase.getSupplier()),
+                purchase.getPurchaseType(),
+                purchase.getPurchaseDate(),
+                totalAmount,
+                itemDTOs
+        );
     }
 
-    public List<Purchase> getAllPurchases() {
-        return purchaseRepository.findAll();
-    }
-
-    public Purchase updatePurchase(Long id, Purchase updatePurchase) {
-        Purchase existingPurchase = getPurchaseOrThrow(id);
-        existingPurchase.setPurchaseDate(updatePurchase.getPurchaseDate());
-        if (updatePurchase.getSupplier() != null) {
-            existingPurchase.setSupplier(updatePurchase.getSupplier());
+    public List<PurchaseDTO> getAllPurchases() {
+        List<Purchase> purchases = purchaseRepository.findAll();
+        List<PurchaseDTO> result = new ArrayList<>();
+        for (Purchase purchase : purchases) {
+            result.add(getPurchaseById(purchase.getId()));
         }
-        return purchaseRepository.save(existingPurchase);
+        return result;
+    }
+
+    public PurchaseDTO updatePurchase(Long id, PurchaseRequestDTO request) {
+        Purchase purchase = getPurchaseOrThrow(id);
+
+        // Update supplier
+        if (request.getSupplierId() != null) {
+            purchase.setSupplier(getSupplierOrThrow(request.getSupplierId()));
+        }
+
+        // Update purchase date and type
+        if (request.getPurchaseDate() != null) {
+            purchase.setPurchaseDate(request.getPurchaseDate());
+        }
+        if (request.getPurchaseType() != null) {
+            purchase.setPurchaseType(request.getPurchaseType());
+        }
+
+        purchaseRepository.save(purchase);
+
+        // TODO: update items if request contains them
+
+        return getPurchaseById(id);
     }
 
     public void deletePurchase(Long id) {
@@ -115,8 +169,15 @@ public class PurchaseService {
         purchaseRepository.delete(purchase);
     }
 
-    // Calculate total amount of a purchase dynamically
+    // -------------------------
+    // Calculate total amount
+    // -------------------------
     public BigDecimal calculateTotalAmount(Purchase purchase) {
-        return purchase.getItems().stream().map(item -> item.getCostPrice().multiply(BigDecimal.valueOf(item.getQuantity()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (purchase.getItems() == null) return BigDecimal.ZERO;
+
+        return purchase.getItems().stream()
+                .map(item -> item.getCostPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
 }
