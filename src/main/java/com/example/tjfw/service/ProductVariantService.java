@@ -6,7 +6,6 @@ import com.example.tjfw.exceptions.AlreadyExistsException;
 import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ProductVariantRepository;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -40,6 +39,10 @@ public class ProductVariantService {
 
     public ProductVariant findProductVariantById(Long id) {
         return getProductVariantOrThrow(id);
+    }
+
+    public List<ProductVariant> findAllByProductId(Long productId) {
+        return productVariantRepository.findAllVariantsByProductId(productId);
     }
 
     public List<ProductVariant> findAllProductVariants() {
