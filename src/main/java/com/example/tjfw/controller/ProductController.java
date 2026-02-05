@@ -1,5 +1,6 @@
 package com.example.tjfw.controller;
 
+import com.example.tjfw.dto.mapper.ProductVariantMapper;
 import com.example.tjfw.dto.product.ProductDTO;
 import com.example.tjfw.dto.product.ProductRequestDTO;
 import com.example.tjfw.dto.productvariant.ProductVariantDTO;
@@ -24,10 +25,12 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductVariantService productVariantService;
+    private final ProductVariantMapper productVariantMapper;
 
-    public ProductController(ProductService productService, ProductVariantService productVariantService) {
+    public ProductController(ProductService productService, ProductVariantService productVariantService, ProductVariantMapper productVariantMapper) {
         this.productService = productService;
         this.productVariantService = productVariantService;
+        this.productVariantMapper = productVariantMapper;
     }
 
     // ========================
@@ -99,25 +102,19 @@ public class ProductController {
     // ========================
     // PRODUCT VARIANT CRUD
     // ========================
-    @GetMapping("/{productId}/variants")
-    public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> getVariants(@PathVariable Long productId) {
-
-        // ensure product exists
-        productService.findById(productId);
-
+    public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> getVariants(@PathVariable Long id) {
         List<ProductVariantDTO> variants = productVariantService
-                .findAllByProductId(productId)
+                .findAllByProductId(id)
                 .stream()
-                .map(this::mapToDTO)
+                .map(productVariantMapper::toDTO)
                 .toList();
-
         return ResponseEntity.ok(new ApiResponse<>("Variants found", variants));
     }
 
     @GetMapping("/variants/{variantId}")
     public ResponseEntity<ApiResponse<ProductVariantDTO>> getVariant(@PathVariable Long variantId) {
         ProductVariant variant = productVariantService.findProductVariantById(variantId);
-        return ResponseEntity.ok(new ApiResponse<>("Variant found", mapToDTO(variant)));
+        return ResponseEntity.ok(new ApiResponse<>("Variant found", productVariantMapper.toDTO(variant)));
     }
 
     @PostMapping("/{productId}/variants")
@@ -136,7 +133,7 @@ public class ProductController {
         );
 
         ProductVariant saved = productVariantService.createNewProductVariant(variant);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Variant created", mapToDTO(saved)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Variant created", productVariantMapper.toDTO(saved)));
     }
 
     @PutMapping("/variants/{variantId}")
@@ -153,28 +150,12 @@ public class ProductController {
 
         // SKU regenerated if needed in service
         ProductVariant updated = productVariantService.createNewProductVariant(existing);
-        return ResponseEntity.ok(new ApiResponse<>("Variant updated", mapToDTO(updated)));
+        return ResponseEntity.ok(new ApiResponse<>("Variant updated", productVariantMapper.toDTO(updated)));
     }
 
     @DeleteMapping("/variants/{variantId}")
     public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable Long variantId) {
         productVariantService.deleteProductVariant(variantId);
         return ResponseEntity.ok(new ApiResponse<>("Variant deleted", null));
-    }
-
-    // ========================
-    // Helper method to map ProductVariant -> DTO
-    // ========================
-    private ProductVariantDTO mapToDTO(ProductVariant variant) {
-        return new ProductVariantDTO(
-                variant.getProductVariantId(),
-                variant.getProduct().getProductId(),
-                variant.getProduct().getProductName(),
-                variant.getColor(),
-                variant.getSalePrice(),
-                variant.getSize(),
-                variant.getQuantity(),
-                variant.getSku()
-        );
     }
 }
