@@ -3,6 +3,8 @@ package com.example.tjfw.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "purchases")
@@ -19,13 +21,20 @@ public class Purchase {
     private PurchaseType purchaseType;
     @Column(nullable = false)
     private LocalDateTime purchaseDate;
+    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PurchaseItem> items = new ArrayList<>();
 
-    protected Purchase() {}
+    public Purchase() {}
+
     public Purchase(Supplier supplier, PurchaseType purchaseType, LocalDateTime purchaseDate) {
         this.supplier = supplier;
         this.purchaseType = purchaseType;
         this.purchaseDate = purchaseDate;
     }
+
+    public List<PurchaseItem> getItems() {return items;}
+
+    public void setItems(List<PurchaseItem> items) {this.items = items;}
 
     public Long getId() {
         return id;
