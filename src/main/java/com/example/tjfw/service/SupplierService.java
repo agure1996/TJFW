@@ -17,7 +17,7 @@ public class SupplierService {
     }
     // re-using a find/fail method
     private Supplier getSupplierOrThrow(Long id) {
-        return supplierRepository.findById(id)
+        return supplierRepository.findBySupplierId(id)
                 .orElseThrow(() -> new NotFoundException("Supplier not found"));
     }
 

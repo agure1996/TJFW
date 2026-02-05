@@ -39,7 +39,7 @@ public class PurchaseService {
     }
 
     private Supplier getSupplierOrThrow(Long id) {
-        return supplierRepository.findById(id)
+        return supplierRepository.findBySupplierId(id)
                 .orElseThrow(() -> new NotFoundException("Supplier with id " + id + " not found"));
     }
 
