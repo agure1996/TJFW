@@ -15,8 +15,7 @@ public class Supplier {
     private String supplierContactInfo;
     private String notes;
 
-    protected Supplier() {
-    }
+    public Supplier() {}
 
     public Supplier(String supplierName, String supplierContactInfo, String notes) {
         this.supplierName = supplierName;

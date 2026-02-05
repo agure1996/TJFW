@@ -163,7 +163,7 @@ public class ProductController {
     }
 
     // ========================
-    // Helper: map ProductVariant -> DTO
+    // Helper method to map ProductVariant -> DTO
     // ========================
     private ProductVariantDTO mapToDTO(ProductVariant variant) {
         return new ProductVariantDTO(
