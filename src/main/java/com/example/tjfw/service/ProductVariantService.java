@@ -1,5 +1,6 @@
 package com.example.tjfw.service;
 
+import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.exceptions.AlreadyExistsException;
 import com.example.tjfw.exceptions.NotFoundException;
@@ -52,6 +53,27 @@ public class ProductVariantService {
         productVariant.setSku(generateSku(productVariant));
         //save this new product variant to the repository
         return productVariantRepository.save(productVariant);
+    }
+
+    public ProductVariant updateProductVariant(ProductVariant updatedVariant) {
+        // ensure the variant exists
+        ProductVariant existing = getProductVariantOrThrow(updatedVariant.getProductVariantId());
+
+        // check uniqueness if color, size, or product changed
+        if (!existing.getColor().equals(updatedVariant.getColor()) ||
+                existing.getSize() != updatedVariant.getSize() ||
+                !existing.getProduct().equals(updatedVariant.getProduct())) {
+            checkVariantUniqueness(updatedVariant);
+        }
+
+        // update fields
+        existing.setColor(updatedVariant.getColor());
+        existing.setSize(updatedVariant.getSize());
+        existing.setQuantity(updatedVariant.getQuantity());
+        existing.setSalePrice(updatedVariant.getSalePrice());
+        existing.setSku(generateSku(updatedVariant));
+
+        return productVariantRepository.save(existing);
     }
 
     public void deleteProductVariant(Long id) {
