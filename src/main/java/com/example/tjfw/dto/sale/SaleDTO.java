@@ -1,6 +1,5 @@
 package com.example.tjfw.dto.sale;
 
-import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.dto.saleitem.SaleItemDTO;
 
 import java.math.BigDecimal;
@@ -20,7 +19,6 @@ public class SaleDTO {
         this.totalAmount = totalAmount;
     }
 
-    // getters
     public Long getSaleId() { return saleId; }
     public LocalDateTime getSaleDate() { return saleDate; }
     public List<SaleItemDTO> getItems() { return items; }
