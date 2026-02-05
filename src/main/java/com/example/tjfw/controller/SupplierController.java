@@ -1,7 +1,7 @@
 package com.example.tjfw.controller;
 
 import com.example.tjfw.dto.supplier.SupplierDTO;
-import com.example.tjfw.dto.supplier.SupplierRequestDTO;
+import com.example.tjfw.dto.supplier.RequestSupplierDTO;
 import com.example.tjfw.entity.Supplier;
 import com.example.tjfw.response.ApiResponse;
 import com.example.tjfw.service.SupplierService;
@@ -39,7 +39,7 @@ public class SupplierController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<SupplierDTO>> createSupplier(@Valid @RequestBody SupplierRequestDTO request) {
+    public ResponseEntity<ApiResponse<SupplierDTO>> createSupplier(@Valid @RequestBody RequestSupplierDTO request) {
         Supplier supplier = new Supplier();
         supplier.setSupplierName(request.supplierName());
         supplier.setSupplierContactInfo(request.supplierContactInfo());
@@ -54,7 +54,7 @@ public class SupplierController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<SupplierDTO>> updateSupplier(
             @PathVariable Long id,
-            @Valid @RequestBody SupplierRequestDTO request
+            @Valid @RequestBody RequestSupplierDTO request
     ) {
         Supplier existing = supplierService.getSupplierById(id);
 
