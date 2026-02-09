@@ -24,7 +24,8 @@ public class PurchaseService {
     private final SupplierRepository supplierRepository;
     private final PurchaseItemService purchaseItemService;
 
-    public PurchaseService(PurchaseRepository purchaseRepository, SupplierRepository supplierRepository, PurchaseItemService purchaseItemService) {
+    public PurchaseService(PurchaseRepository purchaseRepository, SupplierRepository supplierRepository,
+            PurchaseItemService purchaseItemService) {
         this.purchaseRepository = purchaseRepository;
         this.supplierRepository = supplierRepository;
         this.purchaseItemService = purchaseItemService;
@@ -48,8 +49,7 @@ public class PurchaseService {
                 supplier.getSupplierId(),
                 supplier.getSupplierName(),
                 supplier.getSupplierContactInfo(),
-                supplier.getNotes()
-        );
+                supplier.getNotes());
     }
 
     private PurchaseItemDTO mapPurchaseItemToDTO(PurchaseItem item) {
@@ -61,16 +61,15 @@ public class PurchaseService {
                 item.getProductVariant().getSalePrice(),
                 item.getProductVariant().getSize(),
                 item.getProductVariant().getQuantity(),
-                item.getProductVariant().getSku()
-        );
+                item.getProductVariant().getSku());
 
         return new PurchaseItemDTO(
                 item.getId(),
                 variantDTO,
                 item.getQuantity(),
-                item.getCostPrice()
-        );
+                item.getCostPrice());
     }
+
     // -------------------------
     // Methods to support CRUD functions
     // -------------------------
@@ -92,8 +91,7 @@ public class PurchaseService {
                         purchase.getId(),
                         itemReq.getProductVariantId(),
                         itemReq.getQuantity(),
-                        itemReq.getCostPrice()
-                );
+                        itemReq.getCostPrice());
                 itemDTOs.add(mapPurchaseItemToDTO(item));
             }
         }
@@ -106,8 +104,7 @@ public class PurchaseService {
                 purchase.getPurchaseType(),
                 purchase.getPurchaseDate(),
                 totalAmount,
-                itemDTOs
-        );
+                itemDTOs);
     }
 
     public PurchaseDTO getPurchaseById(Long id) {
@@ -128,8 +125,7 @@ public class PurchaseService {
                 purchase.getPurchaseType(),
                 purchase.getPurchaseDate(),
                 totalAmount,
-                itemDTOs
-        );
+                itemDTOs);
     }
 
     public List<PurchaseDTO> getAllPurchases() {
@@ -144,12 +140,12 @@ public class PurchaseService {
     public PurchaseDTO updatePurchase(Long id, RequestPurchaseDTO request) {
         Purchase purchase = getPurchaseOrThrow(id);
 
-        // Update supplier
+        // -------------------------
+        // Update supplier, date, type
+        // -------------------------
         if (request.getSupplierId() != null) {
             purchase.setSupplier(getSupplierOrThrow(request.getSupplierId()));
         }
-
-        // Update purchase date and type
         if (request.getPurchaseDate() != null) {
             purchase.setPurchaseDate(request.getPurchaseDate());
         }
@@ -157,10 +153,43 @@ public class PurchaseService {
             purchase.setPurchaseType(request.getPurchaseType());
         }
 
+        // -------------------------
+        // Update items
+        // -------------------------
+        if (request.getItems() != null) {
+            List<PurchaseItem> currentItems = purchase.getItems();
+
+            // Remove items that are no longer in the request
+            currentItems.removeIf(existingItem -> request.getItems().stream()
+                    .noneMatch(reqItem -> reqItem.getProductVariantId().equals(
+                            existingItem.getProductVariant().getProductVariantId())));
+
+            // Update existing items or add new items
+            for (RequestPurchaseItemDTO itemReq : request.getItems()) {
+                PurchaseItem existingItem = currentItems.stream()
+                        .filter(i -> i.getProductVariant().getProductVariantId().equals(itemReq.getProductVariantId()))
+                        .findFirst()
+                        .orElse(null);
+
+                if (existingItem != null) {
+                    // Update quantity and cost price
+                    existingItem.setQuantity(itemReq.getQuantity());
+                    existingItem.setCostPrice(itemReq.getCostPrice());
+                } else {
+                    // Add new item
+                    PurchaseItem newItem = purchaseItemService.addPurchaseItem(
+                            purchase.getId(),
+                            itemReq.getProductVariantId(),
+                            itemReq.getQuantity(),
+                            itemReq.getCostPrice());
+                    currentItems.add(newItem);
+                }
+            }
+        }
+
         purchaseRepository.save(purchase);
 
-        // TODO: update items if request contains them
-
+        // Return full updated purchase DTO
         return getPurchaseById(id);
     }
 
@@ -173,7 +202,8 @@ public class PurchaseService {
     // Calculate total amount
     // -------------------------
     public BigDecimal calculateTotalAmount(Purchase purchase) {
-        if (purchase.getItems() == null) return BigDecimal.ZERO;
+        if (purchase.getItems() == null)
+            return BigDecimal.ZERO;
 
         return purchase.getItems().stream()
                 .map(item -> item.getCostPrice().multiply(BigDecimal.valueOf(item.getQuantity())))

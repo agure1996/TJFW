@@ -6,6 +6,7 @@ public class RequestProductDTO {
     private String productName;
     private String productType;
     private String productDescription;
+    private Long supplierId;
 
     public RequestProductDTO(String productName, String productType, String productDescription) {
         this.productName = productName;
@@ -37,4 +38,11 @@ public class RequestProductDTO {
         this.productDescription = productDescription;
     }
 
+    public Long getSupplierId() {
+        return supplierId;
+    }
+
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
+    }
 }

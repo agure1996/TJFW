@@ -2,6 +2,9 @@ package com.example.tjfw.entity;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "products")
 public class Product {
@@ -14,13 +17,37 @@ public class Product {
     private ProductType productType;
     private String productDescription;
 
-    protected Product() {
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariant> variants = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplierId")
+    private Supplier supplier;
+
+    public Product() {
     }
 
     public Product(String productName, ProductType productType, String productDescription) {
         this.productName = productName;
         this.productType = productType;
         this.productDescription = productDescription;
+    }
+
+    public Product(String productName, ProductType productType, String productDescription, List<ProductVariant> variants, Supplier supplier) {
+        this.productName = productName;
+        this.productType = productType;
+        this.productDescription = productDescription;
+        this.variants = variants;
+        this.supplier = supplier;
+    }
+
+    // add getter/setter
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
     }
 
     public Long getProductId() {
@@ -51,6 +78,13 @@ public class Product {
         this.productDescription = productDescription;
     }
 
+    public List<ProductVariant> getVariants() {
+        return variants;
+    }
+
+    public void setVariants(List<ProductVariant> variants) {
+        this.variants = variants;
+    }
 
     @Override
     public String toString() {
@@ -61,6 +95,4 @@ public class Product {
                 ", Product Description='" + productDescription + '\'' +
                 '}';
     }
-
-
 }

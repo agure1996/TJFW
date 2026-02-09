@@ -16,7 +16,6 @@ public class Supplier {
     private String notes;
 
     public Supplier() {}
-
     public Supplier(String supplierName, String supplierContactInfo, String notes) {
         this.supplierName = supplierName;
         this.supplierContactInfo = supplierContactInfo;

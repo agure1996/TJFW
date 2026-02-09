@@ -1,4 +1,4 @@
 package com.example.tjfw.dto.product;
 
 //API Response DTO for product
-public record ProductDTO(Long productId, String productName, String productType, String productDescription) {}
+public record ProductDTO(Long productId, String productName, String productType, String productDescription, Long supplierId) {}

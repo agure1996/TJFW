@@ -34,8 +34,8 @@ public class ProductController {
     }
 
     // ========================
-    // PRODUCT CRUD
-    // ========================
+// PRODUCT CRUD
+// ========================
     @GetMapping
     public ResponseEntity<ApiResponse<List<ProductDTO>>> findAll() {
         List<ProductDTO> products = productService.findAllProducts().stream()
@@ -43,7 +43,8 @@ public class ProductController {
                         p.getProductId(),
                         p.getProductName(),
                         p.getProductType().toString(),
-                        p.getProductDescription()))
+                        p.getProductDescription(),
+                        p.getSupplier() != null ? p.getSupplier().getSupplierId() : null))
                 .toList();
         return ResponseEntity.ok(new ApiResponse<>("List of Products found", products));
     }
@@ -51,7 +52,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDTO>> findById(@PathVariable Long id) {
         Product p = productService.findById(id);
-        ProductDTO dto = new ProductDTO(p.getProductId(), p.getProductName(), p.getProductType().toString(), p.getProductDescription());
+        ProductDTO dto = new ProductDTO(p.getProductId(), p.getProductName(), p.getProductType().toString(), p.getProductDescription(), p.getSupplier() != null ? p.getSupplier().getSupplierId() : null);
         return ResponseEntity.ok(new ApiResponse<>("Product found", dto));
     }
 
@@ -67,8 +68,8 @@ public class ProductController {
         }
 
         Product product = new Product(request.getProductName(), type, request.getProductDescription());
-        Product created = productService.createNewProduct(product);
-        ProductDTO dto = new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType().toString(), created.getProductDescription());
+        Product created = productService.createNewProduct(product, request.getSupplierId());
+        ProductDTO dto = new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType().toString(), created.getProductDescription(), created.getSupplier() != null ? created.getSupplier().getSupplierId() : null);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Product created successfully", dto));
     }
 
@@ -86,12 +87,28 @@ public class ProductController {
             }
 
             Product p = new Product(request.getProductName(), type, request.getProductDescription());
-            Product created = productService.createNewProduct(p);
-            createdList.add(new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType().toString(), created.getProductDescription()));
+            Product created = productService.createNewProduct(p, request.getSupplierId());
+            createdList.add(new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType().toString(), created.getProductDescription(), created.getSupplier() != null ? created.getSupplier().getSupplierId() : null));
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Products bulk added successfully", createdList));
     }
 
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@PathVariable Long id, @Valid @RequestBody RequestProductDTO request) {
+        ProductType type;
+        try {
+            type = ProductType.valueOf(request.getProductType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>("Invalid product type: " + request.getProductType(), null));
+        }
+
+        Product product = new Product(request.getProductName(), type, request.getProductDescription());
+        Product updated = productService.updateProduct(id, product, request.getSupplierId());
+        ProductDTO dto = new ProductDTO(updated.getProductId(), updated.getProductName(), updated.getProductType().toString(), updated.getProductDescription(), updated.getSupplier() != null ? updated.getSupplier().getSupplierId() : null);
+        return ResponseEntity.ok(new ApiResponse<>("Product updated successfully", dto));
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
@@ -102,6 +119,7 @@ public class ProductController {
     // ========================
     // PRODUCT VARIANT CRUD
     // ========================
+    @GetMapping("/{id}/variants")
     public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> getVariants(@PathVariable Long id) {
         List<ProductVariantDTO> variants = productVariantService
                 .findAllByProductId(id)
@@ -109,6 +127,16 @@ public class ProductController {
                 .map(productVariantMapper::toDTO)
                 .toList();
         return ResponseEntity.ok(new ApiResponse<>("Variants found", variants));
+    }
+
+    @GetMapping("/variants")
+    public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> listAllVariants() {
+        List<ProductVariantDTO> variants = productVariantService
+                .findAllProductVariants()
+                .stream()
+                .map(productVariantMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(new ApiResponse<>("All variants", variants));
     }
 
     @GetMapping("/variants/{variantId}")
@@ -149,7 +177,7 @@ public class ProductController {
         existing.setSalePrice(requestDTO.getSalePrice());
 
         // SKU regenerated if needed in service
-        ProductVariant updated = productVariantService.createNewProductVariant(existing);
+        ProductVariant updated = productVariantService.updateProductVariant(existing);
         return ResponseEntity.ok(new ApiResponse<>("Variant updated", productVariantMapper.toDTO(updated)));
     }
 

@@ -1,6 +1,5 @@
 package com.example.tjfw.service;
 
-import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.exceptions.AlreadyExistsException;
 import com.example.tjfw.exceptions.NotFoundException;
@@ -22,16 +21,21 @@ public class ProductVariantService {
         if (variantExists) {
             throw new AlreadyExistsException("Product variant already exists");
         }
-
+        
     }
-
-    private String generateSku(ProductVariant variant) {
-        String productCode = variant.getProduct().getProductName().substring(0, 3).toUpperCase();
-        String colorCode = variant.getColor().substring(0, 3).toUpperCase();
-        String sizeCode = String.valueOf(variant.getSize()).toUpperCase();
-
-        return productCode + "-" + colorCode + "-" + sizeCode;
+    
+  private String generateSku(ProductVariant v) {
+    if (productVariantRepository.existsBySku(generateSku(v))) {
+        throw new AlreadyExistsException("SKU conflict detected");
     }
+  return String.format(
+    "%s-%s-%s-%d",
+    v.getProduct().getProductName().substring(0, 3).toUpperCase(),
+    v.getColor().substring(0, 3).toUpperCase(),
+    String.valueOf(v.getSize()).toUpperCase(),
+    System.currentTimeMillis() % 10000
+  );
+}
 
     private ProductVariant getProductVariantOrThrow(Long id) {
         return productVariantRepository.findById(id).orElseThrow(() -> new NotFoundException("Product variant not found"));
