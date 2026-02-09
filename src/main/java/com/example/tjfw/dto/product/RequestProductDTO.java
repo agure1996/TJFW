@@ -1,14 +1,18 @@
 package com.example.tjfw.dto.product;
 
+import com.example.tjfw.entity.ProductType;
+
 //DTO for product Requests
 public class RequestProductDTO {
 
     private String productName;
-    private String productType;
+    private ProductType productType;
     private String productDescription;
     private Long supplierId;
 
-    public RequestProductDTO(String productName, String productType, String productDescription) {
+    public RequestProductDTO(){}
+    
+    public RequestProductDTO(String productName, ProductType productType, String productDescription) {
         this.productName = productName;
         this.productType = productType;
         this.productDescription = productDescription;
@@ -22,11 +26,11 @@ public class RequestProductDTO {
         this.productName = productName;
     }
 
-    public String getProductType() {
+    public ProductType getProductType() {
         return productType;
     }
 
-    public void setProductType(String productType) {
+    public void setProductType(ProductType productType) {
         this.productType = productType;
     }
 

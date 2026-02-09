@@ -42,7 +42,7 @@ public class ProductController {
                 .map(p -> new ProductDTO(
                         p.getProductId(),
                         p.getProductName(),
-                        p.getProductType().toString(),
+                        p.getProductType(),
                         p.getProductDescription(),
                         p.getSupplier() != null ? p.getSupplier().getSupplierId() : null))
                 .toList();
@@ -52,7 +52,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDTO>> findById(@PathVariable Long id) {
         Product p = productService.findById(id);
-        ProductDTO dto = new ProductDTO(p.getProductId(), p.getProductName(), p.getProductType().toString(), p.getProductDescription(), p.getSupplier() != null ? p.getSupplier().getSupplierId() : null);
+        ProductDTO dto = new ProductDTO(p.getProductId(), p.getProductName(), p.getProductType(), p.getProductDescription(), p.getSupplier() != null ? p.getSupplier().getSupplierId() : null);
         return ResponseEntity.ok(new ApiResponse<>("Product found", dto));
     }
 
@@ -61,7 +61,7 @@ public class ProductController {
         // Convert string to enum
         ProductType type;
         try {
-            type = ProductType.valueOf(request.getProductType().toUpperCase());
+            type = request.getProductType();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>("Invalid product type: " + request.getProductType(), null));
@@ -69,7 +69,7 @@ public class ProductController {
 
         Product product = new Product(request.getProductName(), type, request.getProductDescription());
         Product created = productService.createNewProduct(product, request.getSupplierId());
-        ProductDTO dto = new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType().toString(), created.getProductDescription(), created.getSupplier() != null ? created.getSupplier().getSupplierId() : null);
+        ProductDTO dto = new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType(), created.getProductDescription(), created.getSupplier() != null ? created.getSupplier().getSupplierId() : null);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Product created successfully", dto));
     }
 
@@ -80,7 +80,7 @@ public class ProductController {
         for (RequestProductDTO request : requests) {
             ProductType type;
             try {
-                type = ProductType.valueOf(request.getProductType().toUpperCase());
+                type = request.getProductType();
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest()
                         .body(new ApiResponse<>("Invalid product type: " + request.getProductType(), null));
@@ -88,7 +88,7 @@ public class ProductController {
 
             Product p = new Product(request.getProductName(), type, request.getProductDescription());
             Product created = productService.createNewProduct(p, request.getSupplierId());
-            createdList.add(new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType().toString(), created.getProductDescription(), created.getSupplier() != null ? created.getSupplier().getSupplierId() : null));
+            createdList.add(new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType(), created.getProductDescription(), created.getSupplier() != null ? created.getSupplier().getSupplierId() : null));
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Products bulk added successfully", createdList));
     }
@@ -98,7 +98,7 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@PathVariable Long id, @Valid @RequestBody RequestProductDTO request) {
         ProductType type;
         try {
-            type = ProductType.valueOf(request.getProductType().toUpperCase());
+            type = request.getProductType();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>("Invalid product type: " + request.getProductType(), null));
@@ -106,7 +106,7 @@ public class ProductController {
 
         Product product = new Product(request.getProductName(), type, request.getProductDescription());
         Product updated = productService.updateProduct(id, product, request.getSupplierId());
-        ProductDTO dto = new ProductDTO(updated.getProductId(), updated.getProductName(), updated.getProductType().toString(), updated.getProductDescription(), updated.getSupplier() != null ? updated.getSupplier().getSupplierId() : null);
+        ProductDTO dto = new ProductDTO(updated.getProductId(), updated.getProductName(), updated.getProductType(), updated.getProductDescription(), updated.getSupplier() != null ? updated.getSupplier().getSupplierId() : null);
         return ResponseEntity.ok(new ApiResponse<>("Product updated successfully", dto));
     }
 

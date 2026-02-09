@@ -14,6 +14,7 @@ public class Product {
     private Long id;
     private String productName;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ProductType productType;
     private String productDescription;
 
