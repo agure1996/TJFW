@@ -4,10 +4,14 @@ import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.exceptions.AlreadyExistsException;
 import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ProductVariantRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@Transactional
 public class ProductVariantService {
 
     private final ProductVariantRepository productVariantRepository;
@@ -23,18 +27,26 @@ public class ProductVariantService {
         }
         
     }
+
+    private String safePrefix(String value) {
+    return value.length() >= 3
+            ? value.substring(0, 3).toUpperCase()
+            : value.toUpperCase();
+}
     
-  private String generateSku(ProductVariant v) {
-    if (productVariantRepository.existsBySku(generateSku(v))) {
-        throw new AlreadyExistsException("SKU conflict detected");
-    }
-  return String.format(
-    "%s-%s-%s-%d",
-    v.getProduct().getProductName().substring(0, 3).toUpperCase(),
-    v.getColor().substring(0, 3).toUpperCase(),
-    String.valueOf(v.getSize()).toUpperCase(),
-    System.currentTimeMillis() % 10000
-  );
+    private String generateSku(ProductVariant v) {
+    String sku;
+    do {
+        sku = String.format(
+            "%s-%s-%s-%d",
+            safePrefix(v.getProduct().getProductName()),
+            safePrefix(v.getColor()),
+            v.getSize(),
+            System.currentTimeMillis() % 10000
+        );
+    } while (productVariantRepository.existsBySku(sku));
+
+    return sku;
 }
 
     private ProductVariant getProductVariantOrThrow(Long id) {

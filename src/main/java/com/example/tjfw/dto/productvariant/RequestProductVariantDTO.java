@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class RequestProductVariantDTO {
 
-    private Long productId;
+
     private String color;
     private BigDecimal salePrice;
     private int size;
@@ -12,8 +12,7 @@ public class RequestProductVariantDTO {
 
     public RequestProductVariantDTO() {}
 
-    public RequestProductVariantDTO(Long productId, String color, BigDecimal salePrice, int size, int quantity) {
-        this.productId = productId;
+    public RequestProductVariantDTO( String color, BigDecimal salePrice, int size, int quantity) {
         this.color = color;
         this.salePrice = salePrice;
         this.size = size;
@@ -21,9 +20,6 @@ public class RequestProductVariantDTO {
     }
 
     // getters and setters
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
-
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
 

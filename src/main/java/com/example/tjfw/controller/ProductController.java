@@ -156,23 +156,26 @@ public class ProductController {
         return ResponseEntity.ok(new ApiResponse<>("Variant found", productVariantMapper.toDTO(variant)));
     }
 
-    @PostMapping("/{productId}/variants")
+   @PostMapping("/{productId}/variants")
     public ResponseEntity<ApiResponse<ProductVariantDTO>> createVariant(
-            @PathVariable Long productId,
-            @Valid @RequestBody RequestProductVariantDTO requestDTO) {
-        Product product = productService.findById(productId);
+        @PathVariable Long productId,
+        @Valid @RequestBody RequestProductVariantDTO requestDTO) {
 
-        ProductVariant variant = new ProductVariant(
-                product,
-                requestDTO.getColor(),
-                requestDTO.getSize(),
-                requestDTO.getQuantity(),
-                requestDTO.getSalePrice());
+    Product product = productService.findById(productId);
 
-        ProductVariant saved = productVariantService.createNewProductVariant(variant);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>("Variant created", productVariantMapper.toDTO(saved)));
-    }
+    ProductVariant variant = new ProductVariant(
+            product,
+            requestDTO.getColor(),
+            requestDTO.getSize(),
+            requestDTO.getQuantity(),
+            requestDTO.getSalePrice()
+    );
+
+    ProductVariant saved = productVariantService.createNewProductVariant(variant);
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .body(new ApiResponse<>("Variant created", productVariantMapper.toDTO(saved)));
+}
 
     @PutMapping("/variants/{variantId}")
     public ResponseEntity<ApiResponse<ProductVariantDTO>> updateVariant(
