@@ -7,6 +7,9 @@ import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ProductVariantRepository;
 import com.example.tjfw.repository.PurchaseItemRepository;
 import com.example.tjfw.repository.PurchaseRepository;
+
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -39,19 +42,25 @@ public class PurchaseItemService {
                 .orElseThrow(() -> new NotFoundException("Product variant not found with id " + id));
     }
 
-    // Add single item to a purchase
-    public PurchaseItem addPurchaseItem(Long purchaseId, Long variantId, int quantity, BigDecimal costPrice) {
-        Purchase purchase = getPurchaseOrThrow(purchaseId);
-        ProductVariant variant = getVariantOrThrow(variantId);
+     @Transactional
+public PurchaseItem addPurchaseItem(Long purchaseId, Long variantId, int quantity, BigDecimal costPrice) {
+    Purchase purchase = getPurchaseOrThrow(purchaseId);
+    ProductVariant variant = getVariantOrThrow(variantId);
 
-        PurchaseItem item = new PurchaseItem();
-        item.setPurchase(purchase);
-        item.setProductVariant(variant);
-        item.setQuantity(quantity);
-        item.setCostPrice(costPrice);
+    // ✅ Increase stock
+    variant.setQuantity(variant.getQuantity() + quantity);
+    productVariantRepository.save(variant);
 
-        return purchaseItemRepository.save(item);
-    }
+    PurchaseItem item = new PurchaseItem();
+    item.setPurchase(purchase);
+    item.setProductVariant(variant);
+    item.setQuantity(quantity);
+    item.setCostPrice(costPrice);
+
+    purchase.getItems().add(item);
+    return purchaseItemRepository.save(item);
+}
+
 
     public PurchaseItem getPurchaseItemById(Long id) {
         return getPurchaseItemOrThrow(id);
