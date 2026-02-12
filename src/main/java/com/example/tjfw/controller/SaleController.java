@@ -40,4 +40,17 @@ public class SaleController {
         SaleDTO saleDTO = saleService.createSaleDTOFromEntity(sale); // map entity → DTO
         return ResponseEntity.ok(new ApiResponse<>("Sale found", saleDTO));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SaleDTO>> updateSale(@PathVariable Long id, @RequestBody RequestSaleDTO request) {
+        SaleDTO updatedSale = saleService.updateSale(id, request);
+        return ResponseEntity.ok(new ApiResponse<>("Sale updated", updatedSale));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteSale(@PathVariable Long id) {
+        saleService.deleteSale(id);
+        return ResponseEntity.ok(new ApiResponse<>("Sale deleted", null));
+    }
+
 }

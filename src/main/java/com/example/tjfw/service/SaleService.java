@@ -137,4 +137,78 @@ public class SaleService {
         return saleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Sale not found"));
     }
+
+    // -------------------------
+    // Update sale by id , request
+    // -------------------------
+    public SaleDTO updateSale(Long saleId, RequestSaleDTO request) {
+    // 1. Fetch existing sale
+    Sale sale = saleRepository.findById(saleId)
+            .orElseThrow(() -> new NotFoundException("Sale not found"));
+
+    // 2. Restore stock for old items
+    if (sale.getItems() != null) {
+        for (SaleItem item : sale.getItems()) {
+            ProductVariant variant = item.getProductVariant();
+            variant.setQuantity(variant.getQuantity() + item.getQuantity());
+            variantRepository.save(variant);
+        }
+    }
+
+    // 3. Clear old items
+    sale.getItems().clear();
+
+    // 4. Prepare new items
+    List<SaleItem> newItems = new ArrayList<>();
+    BigDecimal totalAmount = BigDecimal.ZERO;
+
+    for (var reqItem : request.getItems()) {
+        ProductVariant variant = variantRepository.findById(reqItem.getProductVariantId())
+                .orElseThrow(() -> new NotFoundException("Product variant not found"));
+
+        if (variant.getQuantity() < reqItem.getQuantity()) {
+            throw new IllegalArgumentException("Insufficient stock for variant: " + variant.getSku());
+        }
+
+        // Deduct stock
+        variant.setQuantity(variant.getQuantity() - reqItem.getQuantity());
+        variantRepository.save(variant);
+
+        // Create sale item
+        SaleItem saleItem = new SaleItem(sale, variant, reqItem.getQuantity(), reqItem.getSalePrice());
+        newItems.add(saleItem);
+
+        // Update total
+        totalAmount = totalAmount.add(reqItem.getSalePrice().multiply(BigDecimal.valueOf(reqItem.getQuantity())));
+    }
+
+    sale.setItems(newItems);
+    sale.setSaleDate(request.getSaleDate());
+    sale.setTotalAmount(totalAmount);
+
+    saleRepository.save(sale);
+
+    return createSaleDTOFromEntity(sale);
+}
+
+
+    // -------------------------
+    // Delete sale by id
+    // -------------------------
+    public void deleteSale(Long id) {
+    Sale sale = saleRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Sale not found"));
+
+    // Optional: restore stock for each item if you want
+    if (sale.getItems() != null) {
+        for (SaleItem item : sale.getItems()) {
+            ProductVariant variant = item.getProductVariant();
+            variant.setQuantity(variant.getQuantity() + item.getQuantity());
+            variantRepository.save(variant);
+        }
+    }
+
+    saleRepository.delete(sale);
+}
+
 }
