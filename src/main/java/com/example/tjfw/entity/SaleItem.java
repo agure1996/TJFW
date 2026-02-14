@@ -34,7 +34,6 @@ public class SaleItem {
         this.salePrice = salePrice;
     }
 
-    // getters & setters
     public Long getId() { return id; }
     public Sale getSale() { return sale; }
     public void setSale(Sale sale) { this.sale = sale; }

@@ -1,5 +1,6 @@
 package com.example.tjfw.service;
 
+import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.exceptions.AlreadyExistsException;
 import com.example.tjfw.exceptions.NotFoundException;
@@ -61,9 +62,21 @@ public class ProductVariantService {
         return productVariantRepository.findAllVariantsByProductId(productId);
     }
 
-    public List<ProductVariant> findAllProductVariants() {
-        return productVariantRepository.findAll();
+    public List<ProductVariantDTO> findAllProductVariantsDTO() {
+        return productVariantRepository.findAll().stream()
+                .map(v -> new ProductVariantDTO(
+                        v.getProductVariantId(),
+                        v.getProduct().getProductId(),
+                        v.getProduct().getProductName(),
+                        v.getColor(),
+                        v.getSalePrice(),
+                        v.getSize(),
+                        v.getQuantity(),
+                        v.getSku()
+                ))
+                .toList();
     }
+
 
     public ProductVariant createNewProductVariant(ProductVariant productVariant) {
         //check if the product variant is unique

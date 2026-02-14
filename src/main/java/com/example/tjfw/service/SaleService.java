@@ -39,6 +39,8 @@ public class SaleService {
     public SaleDTO createSale(RequestSaleDTO request) {
         Sale sale = new Sale();
         sale.setSaleDate(request.getSaleDate());
+        sale.setCustomerName(request.getCustomerName());       
+        sale.setCustomerContact(request.getCustomerContact()); 
 
         List<SaleItemDTO> itemDTOs = new ArrayList<>();
         List<SaleItem> items = new ArrayList<>();
@@ -79,49 +81,59 @@ public class SaleService {
         sale.setTotalAmount(total);
         saleRepository.save(sale);
 
-        return new SaleDTO(sale.getId(), sale.getSaleDate(), itemDTOs, total);
+        return new SaleDTO(
+                sale.getId(),
+                sale.getSaleDate(),
+                itemDTOs,
+                total,
+                sale.getCustomerName(),       
+                sale.getCustomerContact()     
+        );
     }
 
     // -------------------------
     // Map a Sale entity to SaleDTO
     // -------------------------
-    public SaleDTO createSaleDTOFromEntity(Sale sale) {
-        List<SaleItemDTO> itemDTOs = new ArrayList<>();
-        BigDecimal totalAmount = BigDecimal.ZERO;
+public SaleDTO createSaleDTOFromEntity(Sale sale) {
+    List<SaleItemDTO> itemDTOs = new ArrayList<>();
+    BigDecimal totalAmount = BigDecimal.ZERO;
 
-        if (sale.getItems() != null) {
-            for (SaleItem item : sale.getItems()) {
-                ProductVariant variant = item.getProductVariant();
+    if (sale.getItems() != null) {
+        for (SaleItem item : sale.getItems()) {
+            ProductVariant variant = item.getProductVariant();
 
-                ProductVariantDTO variantDTO = new ProductVariantDTO(
-                        variant.getProductVariantId(),
-                        variant.getProduct().getProductId(),
-                        variant.getProduct().getProductName(),
-                        variant.getColor(),
-                        variant.getSalePrice(),
-                        variant.getSize(),
-                        variant.getQuantity(),
-                        variant.getSku()
-                );
+            ProductVariantDTO variantDTO = new ProductVariantDTO(
+                    variant.getProductVariantId(),
+                    variant.getProduct().getProductId(),
+                    variant.getProduct().getProductName(),
+                    variant.getColor(),
+                    variant.getSalePrice(),
+                    variant.getSize(),
+                    variant.getQuantity(),
+                    variant.getSku()
+            );
 
-                SaleItemDTO saleItemDTO = new SaleItemDTO(
-                        variantDTO,
-                        item.getQuantity(),
-                        item.getSalePrice()
-                );
+            SaleItemDTO saleItemDTO = new SaleItemDTO(
+                    variantDTO,
+                    item.getQuantity(),
+                    item.getSalePrice()
+            );
 
-                itemDTOs.add(saleItemDTO);
-                totalAmount = totalAmount.add(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-            }
+            itemDTOs.add(saleItemDTO);
+            totalAmount = totalAmount.add(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
         }
-
-        return new SaleDTO(
-                sale.getId(),
-                sale.getSaleDate(),
-                itemDTOs,
-                totalAmount
-        );
     }
+
+    return new SaleDTO(
+            sale.getId(),
+            sale.getSaleDate(),
+            itemDTOs,
+            totalAmount, // this ensures totalAmount is correct
+            sale.getCustomerName(),
+            sale.getCustomerContact()
+    );
+}
+
 
     // -------------------------
     // Fetch all sales
@@ -142,11 +154,10 @@ public class SaleService {
     // Update sale by id , request
     // -------------------------
     public SaleDTO updateSale(Long saleId, RequestSaleDTO request) {
-    // 1. Fetch existing sale
     Sale sale = saleRepository.findById(saleId)
             .orElseThrow(() -> new NotFoundException("Sale not found"));
 
-    // 2. Restore stock for old items
+    // Restore stock for old items
     if (sale.getItems() != null) {
         for (SaleItem item : sale.getItems()) {
             ProductVariant variant = item.getProductVariant();
@@ -155,14 +166,12 @@ public class SaleService {
         }
     }
 
-    // 3. Clear old items
+    // Clear old items from managed collection
     sale.getItems().clear();
 
-    // 4. Prepare new items
-    List<SaleItem> newItems = new ArrayList<>();
     BigDecimal totalAmount = BigDecimal.ZERO;
 
-    for (var reqItem : request.getItems()) {
+    for (RequestSaleItemDTO reqItem : request.getItems()) {
         ProductVariant variant = variantRepository.findById(reqItem.getProductVariantId())
                 .orElseThrow(() -> new NotFoundException("Product variant not found"));
 
@@ -170,45 +179,51 @@ public class SaleService {
             throw new IllegalArgumentException("Insufficient stock for variant: " + variant.getSku());
         }
 
-        // Deduct stock
+        // Reduce stock
         variant.setQuantity(variant.getQuantity() - reqItem.getQuantity());
         variantRepository.save(variant);
 
         // Create sale item
-        SaleItem saleItem = new SaleItem(sale, variant, reqItem.getQuantity(), reqItem.getSalePrice());
-        newItems.add(saleItem);
+        SaleItem saleItem = new SaleItem();
+        saleItem.setSale(sale); // 🔑 link to parent
+        saleItem.setProductVariant(variant);
+        saleItem.setQuantity(reqItem.getQuantity());
+        saleItem.setSalePrice(reqItem.getSalePrice()); // only salePrice now
 
-        // Update total
-        totalAmount = totalAmount.add(reqItem.getSalePrice().multiply(BigDecimal.valueOf(reqItem.getQuantity())));
+        sale.getItems().add(saleItem); // ✅ add to managed collection
+
+        totalAmount = totalAmount.add(reqItem.getSalePrice()
+                .multiply(BigDecimal.valueOf(reqItem.getQuantity())));
     }
 
-    sale.setItems(newItems);
+    // Update parent sale fields
     sale.setSaleDate(request.getSaleDate());
+    sale.setCustomerName(request.getCustomerName());
+    sale.setCustomerContact(request.getCustomerContact());
     sale.setTotalAmount(totalAmount);
 
+    // Save parent (cascades to items)
     saleRepository.save(sale);
 
     return createSaleDTOFromEntity(sale);
 }
 
-
     // -------------------------
     // Delete sale by id
     // -------------------------
     public void deleteSale(Long id) {
-    Sale sale = saleRepository.findById(id)
-            .orElseThrow(() -> new NotFoundException("Sale not found"));
+        Sale sale = saleRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Sale not found"));
 
-    // Optional: restore stock for each item if you want
-    if (sale.getItems() != null) {
-        for (SaleItem item : sale.getItems()) {
-            ProductVariant variant = item.getProductVariant();
-            variant.setQuantity(variant.getQuantity() + item.getQuantity());
-            variantRepository.save(variant);
+        // Optional: restore stock for each item
+        if (sale.getItems() != null) {
+            for (SaleItem item : sale.getItems()) {
+                ProductVariant variant = item.getProductVariant();
+                variant.setQuantity(variant.getQuantity() + item.getQuantity());
+                variantRepository.save(variant);
+            }
         }
+
+        saleRepository.delete(sale);
     }
-
-    saleRepository.delete(sale);
-}
-
 }

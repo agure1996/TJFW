@@ -3,9 +3,23 @@ package com.example.tjfw.dto.saleitem;
 import java.math.BigDecimal;
 
 public class RequestSaleItemDTO {
-    private Long productVariantId;
+
+    private Long productVariantId; 
     private int quantity;
     private BigDecimal salePrice;
+
+    public static class ProductVariantWrapper {
+        private Long productVariantId;
+
+        public Long getProductVariantId() { return productVariantId; }
+        public void setProductVariantId(Long productVariantId) { this.productVariantId = productVariantId; }
+    }
+
+    public void setProductVariant(ProductVariantWrapper wrapper) {
+        if (wrapper != null) {
+            this.productVariantId = wrapper.getProductVariantId();
+        }
+    }
 
     public RequestSaleItemDTO() {}
 
@@ -15,6 +29,7 @@ public class RequestSaleItemDTO {
         this.salePrice = salePrice;
     }
 
+    // getters & setters
     public Long getProductVariantId() { return productVariantId; }
     public void setProductVariantId(Long productVariantId) { this.productVariantId = productVariantId; }
     public int getQuantity() { return quantity; }

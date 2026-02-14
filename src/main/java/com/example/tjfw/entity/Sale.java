@@ -22,14 +22,21 @@ public class Sale {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
+    @Column(nullable = false)
+    private String customerName;
+
+    @Column(nullable = false)
+    private String customerContact;
+
     public Sale() {}
 
-    public Sale(LocalDateTime saleDate) {
+    public Sale(LocalDateTime saleDate, String customerName, String customerContact) {
         this.saleDate = saleDate;
         this.totalAmount = BigDecimal.ZERO;
+        this.customerName = customerName;
+        this.customerContact = customerContact;
     }
 
-    // getters & setters
     public Long getId() { return id; }
     public LocalDateTime getSaleDate() { return saleDate; }
     public void setSaleDate(LocalDateTime saleDate) { this.saleDate = saleDate; }
@@ -37,5 +44,8 @@ public class Sale {
     public void setItems(List<SaleItem> items) { this.items = items; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public String getCustomerContact() { return customerContact; }
+    public void setCustomerContact(String customerContact) { this.customerContact = customerContact; }
 }
-

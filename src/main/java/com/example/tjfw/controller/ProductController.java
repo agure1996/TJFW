@@ -141,14 +141,11 @@ public class ProductController {
     }
 
     @GetMapping("/variants")
-    public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> listAllVariants() {
-        List<ProductVariantDTO> variants = productVariantService
-                .findAllProductVariants()
-                .stream()
-                .map(productVariantMapper::toDTO)
-                .toList();
-        return ResponseEntity.ok(new ApiResponse<>("All variants", variants));
-    }
+public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> listAllVariants() {
+    List<ProductVariantDTO> variants = productVariantService.findAllProductVariantsDTO();
+    return ResponseEntity.ok(new ApiResponse<>("All variants", variants));
+}
+
 
     @GetMapping("/variants/{variantId}")
     public ResponseEntity<ApiResponse<ProductVariantDTO>> getVariant(@PathVariable Long variantId) {
