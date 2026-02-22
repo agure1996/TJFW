@@ -10,9 +10,15 @@ public class ProductImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long imageId;
 
+    // 🔹 Product can now be nullable
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id", nullable = true)
     private Product product;
+
+    // 🔹 NEW: Variant relation
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", nullable = true)
+    private ProductVariant variant;
 
     @Column(nullable = false, length = 500)
     private String imageUrl;
@@ -20,20 +26,22 @@ public class ProductImage {
     @Column(nullable = false)
     private String publicId;
 
+    @Column
+    private String altText;
+
     @Column(nullable = false)
     private Boolean isMain = false;
 
     @Column
     private Integer displayOrder = 0;
 
-    @Column
-    private String altText;
 
     // No-argument constructor
     public ProductImage() {}
 
-    public ProductImage(Product product, String imageUrl, String publicId, Boolean isMain, Integer displayOrder, String altText) {
+    public ProductImage(Product product, ProductVariant variant, String imageUrl, String publicId, Boolean isMain, Integer displayOrder, String altText) {
         this.product = product;
+        this.variant = variant;
         this.imageUrl = imageUrl;
         this.publicId = publicId;
         this.isMain = isMain != null ? isMain : false;
@@ -56,6 +64,14 @@ public class ProductImage {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public ProductVariant getProductVariant() {
+        return variant;
+    }
+
+    public void setProductVariant(ProductVariant variant) {
+        this.variant = variant;
     }
 
     public String getImageUrl() {

@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/products/{productId}/images")
+@RequestMapping("/products")
 public class ProductImageController {
 
     private final ProductImageService imageService;
@@ -21,23 +21,25 @@ public class ProductImageController {
         this.imageService = imageService;
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<ProductImageDTO>>> getImages(
-            @PathVariable Long productId
-    ) {
-        List<ProductImageDTO> images = imageService.getProductImages(productId);
-        return ResponseEntity.ok(new ApiResponse<>("Images retrieved successfully", images));
+    // ========================
+    // PRODUCT IMAGE ENDPOINTS
+    // ========================
+
+    @GetMapping("/{productId}/images")
+    public ResponseEntity<ApiResponse<List<ProductImageDTO>>> getProductImages(
+            @PathVariable Long productId) {
+        List<ProductImageDTO> images = imageService.getProductImages(productId, null);
+        return ResponseEntity.ok(new ApiResponse<>("Product images retrieved successfully", images));
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<ProductImageDTO>> uploadImage(
+    @PostMapping("/{productId}/images")
+    public ResponseEntity<ApiResponse<ProductImageDTO>> uploadProductImage(
             @PathVariable Long productId,
-            @RequestParam("file") MultipartFile file
-    ) {
+            @RequestParam("file") MultipartFile file) {
         try {
-            ProductImageDTO image = imageService.uploadImage(productId, file);
+            ProductImageDTO image = imageService.uploadImage(productId, null, file);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse<>("Image uploaded successfully", image));
+                    .body(new ApiResponse<>("Product image uploaded successfully", image));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>("Failed to upload image: " + e.getMessage(), null));
@@ -47,13 +49,12 @@ public class ProductImageController {
         }
     }
 
-    @DeleteMapping("/{imageId}")
-    public ResponseEntity<ApiResponse<Void>> deleteImage(
+    @DeleteMapping("/{productId}/images/{imageId}")
+    public ResponseEntity<ApiResponse<Void>> deleteProductImage(
             @PathVariable Long productId,
-            @PathVariable Long imageId
-    ) {
+            @PathVariable Long imageId) {
         try {
-            imageService.deleteImage(productId, imageId);
+            imageService.deleteImage(imageId, productId, null);
             return ResponseEntity.ok(new ApiResponse<>("Image deleted successfully", null));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -64,13 +65,69 @@ public class ProductImageController {
         }
     }
 
-    @PostMapping("/{imageId}/set-main")
-    public ResponseEntity<ApiResponse<ProductImageDTO>> setMainImage(
+    @PostMapping("/{productId}/images/{imageId}/set-main")
+    public ResponseEntity<ApiResponse<ProductImageDTO>> setMainProductImage(
             @PathVariable Long productId,
-            @PathVariable Long imageId
-    ) {
+            @PathVariable Long imageId) {
         try {
-            ProductImageDTO image = imageService.setMainImage(productId, imageId);
+            ProductImageDTO image = imageService.setMainImage(imageId, productId, null);
+            return ResponseEntity.ok(new ApiResponse<>("Main image updated successfully", image));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(e.getMessage(), null));
+        }
+    }
+
+    // ========================
+    // VARIANT IMAGE ENDPOINTS
+    // ========================
+
+    @GetMapping("/variants/{variantId}/images")
+    public ResponseEntity<ApiResponse<List<ProductImageDTO>>> getVariantImages(
+            @PathVariable Long variantId) {
+        List<ProductImageDTO> images = imageService.getProductImages(null, variantId);
+        return ResponseEntity.ok(new ApiResponse<>("Variant images retrieved successfully", images));
+    }
+
+    @PostMapping("/variants/{variantId}/images")
+    public ResponseEntity<ApiResponse<ProductImageDTO>> uploadVariantImage(
+            @PathVariable Long variantId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            ProductImageDTO image = imageService.uploadImage(null, variantId, file);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponse<>("Variant image uploaded successfully", image));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>("Failed to upload image: " + e.getMessage(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(e.getMessage(), null));
+        }
+    }
+
+    @DeleteMapping("/variants/{variantId}/images/{imageId}")
+    public ResponseEntity<ApiResponse<Void>> deleteVariantImage(
+            @PathVariable Long variantId,
+            @PathVariable Long imageId) {
+        try {
+            imageService.deleteImage(imageId, null, variantId);
+            return ResponseEntity.ok(new ApiResponse<>("Image deleted successfully", null));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>("Failed to delete image: " + e.getMessage(), null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/variants/{variantId}/images/{imageId}/set-main")
+    public ResponseEntity<ApiResponse<ProductImageDTO>> setMainVariantImage(
+            @PathVariable Long variantId,
+            @PathVariable Long imageId) {
+        try {
+            ProductImageDTO image = imageService.setMainImage(imageId, null, variantId);
             return ResponseEntity.ok(new ApiResponse<>("Main image updated successfully", image));
         } catch (Exception e) {
             return ResponseEntity.badRequest()

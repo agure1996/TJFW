@@ -2,6 +2,7 @@ package com.example.tjfw.service;
 
 import com.example.tjfw.dto.expense.ExpenseDTO;
 import com.example.tjfw.dto.expense.RequestExpenseDTO;
+import com.example.tjfw.mapper.ExpenseMapper;
 import com.example.tjfw.entity.Expense;
 import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ExpenseRepository;
@@ -15,22 +16,24 @@ import java.util.List;
 public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
+    private final ExpenseMapper expenseMapper;
 
-    public ExpenseService(ExpenseRepository expenseRepository) {
+    public ExpenseService(ExpenseRepository expenseRepository, ExpenseMapper expenseMapper) {
         this.expenseRepository = expenseRepository;
+        this.expenseMapper = expenseMapper;
     }
 
     public List<ExpenseDTO> list() {
         return expenseRepository.findAll()
                 .stream()
-                .map(this::toDTO)
+                .map(expenseMapper::toDTO)
                 .toList();
     }
 
     public ExpenseDTO getById(Long id) {
         Expense expense = expenseRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Expense not found with id "+ id));
-        return toDTO(expense);
+                .orElseThrow(() -> new NotFoundException("Expense not found with id " + id));
+        return expenseMapper.toDTO(expense);
     }
 
     public ExpenseDTO create(RequestExpenseDTO request) {
@@ -41,13 +44,12 @@ public class ExpenseService {
                 request.getAmount(),
                 request.getNotes()
         );
-        Expense saved = expenseRepository.save(expense);
-        return toDTO(saved);
+        return expenseMapper.toDTO(expenseRepository.save(expense));
     }
 
     public ExpenseDTO update(Long id, RequestExpenseDTO request) {
         Expense existing = expenseRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Expense not found with id "+ id));
+                .orElseThrow(() -> new NotFoundException("Expense not found with id " + id));
 
         existing.setExpenseName(request.getExpenseName());
         existing.setExpenseType(request.getExpenseType());
@@ -55,28 +57,13 @@ public class ExpenseService {
         existing.setAmount(request.getAmount());
         existing.setNotes(request.getNotes());
 
-        Expense updated = expenseRepository.save(existing);
-        return toDTO(updated);
+        return expenseMapper.toDTO(expenseRepository.save(existing));
     }
 
     public void delete(Long id) {
         if (!expenseRepository.existsById(id)) {
-            throw new NotFoundException("Expense not found with id "+ id);
+            throw new NotFoundException("Expense not found with id " + id);
         }
         expenseRepository.deleteById(id);
-    }
-
-    // ========================
-    // Mapper
-    // ========================
-    private ExpenseDTO toDTO(Expense expense) {
-        return new ExpenseDTO(
-                expense.getId(),
-                expense.getExpenseName(),
-                expense.getExpenseType(),
-                expense.getExpenseDate(),
-                expense.getAmount(),
-                expense.getNotes()
-        );
     }
 }

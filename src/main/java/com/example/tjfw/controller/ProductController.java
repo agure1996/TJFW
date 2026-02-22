@@ -1,16 +1,11 @@
 package com.example.tjfw.controller;
 
-import com.example.tjfw.dto.mapper.ProductVariantMapper;
 import com.example.tjfw.dto.product.ProductDTO;
 import com.example.tjfw.dto.product.RequestProductDTO;
-import com.example.tjfw.dto.productvariant.ProductVariantDTO;
-import com.example.tjfw.dto.productvariant.RequestProductVariantDTO;
 import com.example.tjfw.entity.Product;
 import com.example.tjfw.entity.ProductType;
-import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.response.ApiResponse;
 import com.example.tjfw.service.ProductService;
-import com.example.tjfw.service.ProductVariantService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,19 +21,11 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
-    private final ProductVariantService productVariantService;
-    private final ProductVariantMapper productVariantMapper;
 
-    public ProductController(ProductService productService, ProductVariantService productVariantService,
-            ProductVariantMapper productVariantMapper) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.productVariantService = productVariantService;
-        this.productVariantMapper = productVariantMapper;
     }
 
-    // ========================
-    // PRODUCT CRUD
-    // ========================
     @GetMapping
     public ResponseEntity<ApiResponse<List<ProductDTO>>> findAll() {
         List<ProductDTO> products = productService.findAllProducts().stream()
@@ -55,14 +42,18 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDTO>> findById(@PathVariable Long id) {
         Product p = productService.findById(id);
-        ProductDTO dto = new ProductDTO(p.getProductId(), p.getProductName(), p.getProductType(),
-                p.getProductDescription(), p.getSupplier() != null ? p.getSupplier().getSupplierId() : null);
+        ProductDTO dto = new ProductDTO(
+                p.getProductId(),
+                p.getProductName(),
+                p.getProductType(),
+                p.getProductDescription(),
+                p.getSupplier() != null ? p.getSupplier().getSupplierId() : null);
         return ResponseEntity.ok(new ApiResponse<>("Product found", dto));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@Valid @RequestBody RequestProductDTO request) {
-        // Convert string to enum
+    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(
+            @Valid @RequestBody RequestProductDTO request) {
         ProductType type;
         try {
             type = request.getProductType();
@@ -73,10 +64,14 @@ public class ProductController {
 
         Product product = new Product(request.getProductName(), type, request.getProductDescription());
         Product created = productService.createNewProduct(product, request.getSupplierId());
-        ProductDTO dto = new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType(),
+        ProductDTO dto = new ProductDTO(
+                created.getProductId(),
+                created.getProductName(),
+                created.getProductType(),
                 created.getProductDescription(),
                 created.getSupplier() != null ? created.getSupplier().getSupplierId() : null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Product created successfully", dto));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>("Product created successfully", dto));
     }
 
     @PostMapping("/bulk")
@@ -91,10 +86,12 @@ public class ProductController {
                 return ResponseEntity.badRequest()
                         .body(new ApiResponse<>("Invalid product type: " + request.getProductType(), null));
             }
-
             Product p = new Product(request.getProductName(), type, request.getProductDescription());
             Product created = productService.createNewProduct(p, request.getSupplierId());
-            createdList.add(new ProductDTO(created.getProductId(), created.getProductName(), created.getProductType(),
+            createdList.add(new ProductDTO(
+                    created.getProductId(),
+                    created.getProductName(),
+                    created.getProductType(),
                     created.getProductDescription(),
                     created.getSupplier() != null ? created.getSupplier().getSupplierId() : null));
         }
@@ -103,7 +100,8 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(@PathVariable Long id,
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(
+            @PathVariable Long id,
             @Valid @RequestBody RequestProductDTO request) {
         ProductType type;
         try {
@@ -112,10 +110,12 @@ public class ProductController {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>("Invalid product type: " + request.getProductType(), null));
         }
-
         Product product = new Product(request.getProductName(), type, request.getProductDescription());
         Product updated = productService.updateProduct(id, product, request.getSupplierId());
-        ProductDTO dto = new ProductDTO(updated.getProductId(), updated.getProductName(), updated.getProductType(),
+        ProductDTO dto = new ProductDTO(
+                updated.getProductId(),
+                updated.getProductName(),
+                updated.getProductType(),
                 updated.getProductDescription(),
                 updated.getSupplier() != null ? updated.getSupplier().getSupplierId() : null);
         return ResponseEntity.ok(new ApiResponse<>("Product updated successfully", dto));
@@ -127,85 +127,10 @@ public class ProductController {
         return ResponseEntity.ok(new ApiResponse<>("Product deleted successfully", null));
     }
 
-    // ========================
-    // PRODUCT VARIANT CRUD
-    // ========================
-    @GetMapping("/{id}/variants")
-    public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> getVariants(@PathVariable Long id) {
-        List<ProductVariantDTO> variants = productVariantService
-                .findAllByProductId(id)
-                .stream()
-                .map(productVariantMapper::toDTO)
-                .toList();
-        return ResponseEntity.ok(new ApiResponse<>("Variants found", variants));
-    }
-
-    @GetMapping("/variants")
-public ResponseEntity<ApiResponse<List<ProductVariantDTO>>> listAllVariants() {
-    List<ProductVariantDTO> variants = productVariantService.findAllProductVariantsDTO();
-    return ResponseEntity.ok(new ApiResponse<>("All variants", variants));
-}
-
-
-    @GetMapping("/variants/{variantId}")
-    public ResponseEntity<ApiResponse<ProductVariantDTO>> getVariant(@PathVariable Long variantId) {
-        ProductVariant variant = productVariantService.findProductVariantById(variantId);
-        return ResponseEntity.ok(new ApiResponse<>("Variant found", productVariantMapper.toDTO(variant)));
-    }
-
-   @PostMapping("/{productId}/variants")
-    public ResponseEntity<ApiResponse<ProductVariantDTO>> createVariant(
-        @PathVariable Long productId,
-        @Valid @RequestBody RequestProductVariantDTO requestDTO) {
-
-    Product product = productService.findById(productId);
-
-    ProductVariant variant = new ProductVariant(
-            product,
-            requestDTO.getColor(),
-            requestDTO.getSize(),
-            requestDTO.getQuantity(),
-            requestDTO.getSalePrice()
-    );
-
-    ProductVariant saved = productVariantService.createNewProductVariant(variant);
-
-    return ResponseEntity.status(HttpStatus.CREATED)
-            .body(new ApiResponse<>("Variant created", productVariantMapper.toDTO(saved)));
-}
-
-    @PutMapping("/variants/{variantId}")
-    public ResponseEntity<ApiResponse<ProductVariantDTO>> updateVariant(
-            @PathVariable Long variantId,
-            @Valid @RequestBody RequestProductVariantDTO requestDTO) {
-        ProductVariant existing = productVariantService.findProductVariantById(variantId);
-
-        existing.setColor(requestDTO.getColor());
-        existing.setSize(requestDTO.getSize());
-        existing.setQuantity(requestDTO.getQuantity());
-        existing.setSalePrice(requestDTO.getSalePrice());
-
-        // SKU regenerated if needed in service
-        ProductVariant updated = productVariantService.updateProductVariant(existing);
-        return ResponseEntity.ok(new ApiResponse<>("Variant updated", productVariantMapper.toDTO(updated)));
-    }
-
-    @DeleteMapping("/variants/{variantId}")
-    public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable Long variantId) {
-        productVariantService.deleteProductVariant(variantId);
-        return ResponseEntity.ok(new ApiResponse<>("Variant deleted", null));
-    }
-
-    // ========================
-    // PRODUCT TYPES ENDPOINT TO EXPOSE ENUM LIST
-    // ========================
     @GetMapping("/product-types")
     public List<Map<String, String>> productTypes() {
         return Arrays.stream(ProductType.values())
-                .map(t -> Map.of(
-                        "key", t.name(),
-                        "label", t.getDisplayName()))
+                .map(t -> Map.of("key", t.name(), "label", t.getDisplayName()))
                 .toList();
     }
-
 }

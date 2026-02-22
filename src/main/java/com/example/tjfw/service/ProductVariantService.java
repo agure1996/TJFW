@@ -1,14 +1,14 @@
 package com.example.tjfw.service;
 
+import com.example.tjfw.mapper.ProductMapper;
 import com.example.tjfw.dto.productvariant.ProductVariantDTO;
 import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.exceptions.AlreadyExistsException;
 import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ProductVariantRepository;
-
 import jakarta.transaction.Transactional;
-
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -16,42 +16,45 @@ import java.util.List;
 public class ProductVariantService {
 
     private final ProductVariantRepository productVariantRepository;
+    private final ProductMapper productMapper;
 
-    public ProductVariantService(ProductVariantRepository productVariantRepository) {
+    public ProductVariantService(ProductVariantRepository productVariantRepository,
+                                 ProductMapper productMapper) {
         this.productVariantRepository = productVariantRepository;
+        this.productMapper = productMapper;
     }
 
     private void checkVariantUniqueness(ProductVariant productVariant) {
-        boolean variantExists = productVariantRepository.existsByProductAndColorAndSize(productVariant.getProduct(), productVariant.getColor(), productVariant.getSize());
+        boolean variantExists = productVariantRepository.existsByProductAndColorAndSize(
+                productVariant.getProduct(), productVariant.getColor(), productVariant.getSize());
         if (variantExists) {
             throw new AlreadyExistsException("Product variant already exists");
         }
-        
     }
 
     private String safePrefix(String value) {
-    return value.length() >= 3
-            ? value.substring(0, 3).toUpperCase()
-            : value.toUpperCase();
-}
-    
-    private String generateSku(ProductVariant v) {
-    String sku;
-    do {
-        sku = String.format(
-            "%s-%s-%s-%d",
-            safePrefix(v.getProduct().getProductName()),
-            safePrefix(v.getColor()),
-            v.getSize(),
-            System.currentTimeMillis() % 10000
-        );
-    } while (productVariantRepository.existsBySku(sku));
+        return value.length() >= 3
+                ? value.substring(0, 3).toUpperCase()
+                : value.toUpperCase();
+    }
 
-    return sku;
-}
+    private String generateSku(ProductVariant v) {
+        String sku;
+        do {
+            sku = String.format(
+                    "%s-%s-%s-%d",
+                    safePrefix(v.getProduct().getProductName()),
+                    safePrefix(v.getColor()),
+                    v.getSize(),
+                    System.currentTimeMillis() % 10000
+            );
+        } while (productVariantRepository.existsBySku(sku));
+        return sku;
+    }
 
     private ProductVariant getProductVariantOrThrow(Long id) {
-        return productVariantRepository.findById(id).orElseThrow(() -> new NotFoundException("Product variant not found"));
+        return productVariantRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Product variant not found"));
     }
 
     public ProductVariant findProductVariantById(Long id) {
@@ -64,41 +67,25 @@ public class ProductVariantService {
 
     public List<ProductVariantDTO> findAllProductVariantsDTO() {
         return productVariantRepository.findAll().stream()
-                .map(v -> new ProductVariantDTO(
-                        v.getProductVariantId(),
-                        v.getProduct().getProductId(),
-                        v.getProduct().getProductName(),
-                        v.getColor(),
-                        v.getSalePrice(),
-                        v.getSize(),
-                        v.getQuantity(),
-                        v.getSku()
-                ))
+                .map(productMapper::toVariantDTO)
                 .toList();
     }
 
-
     public ProductVariant createNewProductVariant(ProductVariant productVariant) {
-        //check if the product variant is unique
         checkVariantUniqueness(productVariant);
-        //generate sku (sku is unique from entity so no need for check)
         productVariant.setSku(generateSku(productVariant));
-        //save this new product variant to the repository
         return productVariantRepository.save(productVariant);
     }
 
     public ProductVariant updateProductVariant(ProductVariant updatedVariant) {
-        // ensure the variant exists
         ProductVariant existing = getProductVariantOrThrow(updatedVariant.getProductVariantId());
 
-        // check uniqueness if color, size, or product changed
-        if (!existing.getColor().equals(updatedVariant.getColor()) ||
-                existing.getSize() != updatedVariant.getSize() ||
-                !existing.getProduct().equals(updatedVariant.getProduct())) {
+        if (!existing.getColor().equals(updatedVariant.getColor())
+                || existing.getSize() != updatedVariant.getSize()
+                || !existing.getProduct().equals(updatedVariant.getProduct())) {
             checkVariantUniqueness(updatedVariant);
         }
 
-        // update fields
         existing.setColor(updatedVariant.getColor());
         existing.setSize(updatedVariant.getSize());
         existing.setQuantity(updatedVariant.getQuantity());
@@ -109,7 +96,6 @@ public class ProductVariantService {
     }
 
     public void deleteProductVariant(Long id) {
-        ProductVariant productVariant = getProductVariantOrThrow(id);
-        productVariantRepository.delete(productVariant);
+        productVariantRepository.delete(getProductVariantOrThrow(id));
     }
 }

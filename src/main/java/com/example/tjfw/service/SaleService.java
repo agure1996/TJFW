@@ -1,9 +1,8 @@
 package com.example.tjfw.service;
 
-import com.example.tjfw.dto.productvariant.ProductVariantDTO;
-import com.example.tjfw.dto.sale.SaleDTO;
-import com.example.tjfw.dto.saleitem.SaleItemDTO;
+import com.example.tjfw.mapper.SaleMapper;
 import com.example.tjfw.dto.sale.RequestSaleDTO;
+import com.example.tjfw.dto.sale.SaleDTO;
 import com.example.tjfw.dto.saleitem.RequestSaleItemDTO;
 import com.example.tjfw.entity.ProductVariant;
 import com.example.tjfw.entity.Sale;
@@ -22,10 +21,14 @@ public class SaleService {
 
     private final SaleRepository saleRepository;
     private final ProductVariantRepository variantRepository;
+    private final SaleMapper saleMapper;
 
-    public SaleService(SaleRepository saleRepository, ProductVariantRepository variantRepository) {
+    public SaleService(SaleRepository saleRepository,
+                       ProductVariantRepository variantRepository,
+                       SaleMapper saleMapper) {
         this.saleRepository = saleRepository;
         this.variantRepository = variantRepository;
+        this.saleMapper = saleMapper;
     }
 
     private ProductVariant getVariantOrThrow(Long id) {
@@ -33,47 +36,25 @@ public class SaleService {
                 .orElseThrow(() -> new NotFoundException("Product variant not found"));
     }
 
-    // -------------------------
-    // Create a sale (handles stock reduction)
-    // -------------------------
     public SaleDTO createSale(RequestSaleDTO request) {
         Sale sale = new Sale();
         sale.setSaleDate(request.getSaleDate());
-        sale.setCustomerName(request.getCustomerName());       
-        sale.setCustomerContact(request.getCustomerContact()); 
+        sale.setCustomerName(request.getCustomerName());
+        sale.setCustomerContact(request.getCustomerContact());
 
-        List<SaleItemDTO> itemDTOs = new ArrayList<>();
         List<SaleItem> items = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
 
         for (RequestSaleItemDTO reqItem : request.getItems()) {
             ProductVariant variant = getVariantOrThrow(reqItem.getProductVariantId());
 
-            if (variant.getQuantity() < reqItem.getQuantity()) {
+            if (variant.getQuantity() < reqItem.getQuantity())
                 throw new IllegalArgumentException("Insufficient stock for variant: " + variant.getSku());
-            }
 
             variant.setQuantity(variant.getQuantity() - reqItem.getQuantity());
             variantRepository.save(variant);
 
-            SaleItem saleItem = new SaleItem(sale, variant, reqItem.getQuantity(), reqItem.getSalePrice());
-            items.add(saleItem);
-
-            itemDTOs.add(new SaleItemDTO(
-                    new ProductVariantDTO(
-                            variant.getProductVariantId(),
-                            variant.getProduct().getProductId(),
-                            variant.getProduct().getProductName(),
-                            variant.getColor(),
-                            variant.getSalePrice(),
-                            variant.getSize(),
-                            variant.getQuantity(),
-                            variant.getSku()
-                    ),
-                    saleItem.getQuantity(),
-                    saleItem.getSalePrice()
-            ));
-
+            items.add(new SaleItem(sale, variant, reqItem.getQuantity(), reqItem.getSalePrice()));
             total = total.add(reqItem.getSalePrice().multiply(BigDecimal.valueOf(reqItem.getQuantity())));
         }
 
@@ -81,141 +62,70 @@ public class SaleService {
         sale.setTotalAmount(total);
         saleRepository.save(sale);
 
-        return new SaleDTO(
-                sale.getId(),
-                sale.getSaleDate(),
-                itemDTOs,
-                total,
-                sale.getCustomerName(),       
-                sale.getCustomerContact()     
-        );
+        return saleMapper.toDTO(sale);
     }
 
-    // -------------------------
-    // Map a Sale entity to SaleDTO
-    // -------------------------
-public SaleDTO createSaleDTOFromEntity(Sale sale) {
-    List<SaleItemDTO> itemDTOs = new ArrayList<>();
-    BigDecimal totalAmount = BigDecimal.ZERO;
-
-    if (sale.getItems() != null) {
-        for (SaleItem item : sale.getItems()) {
-            ProductVariant variant = item.getProductVariant();
-
-            ProductVariantDTO variantDTO = new ProductVariantDTO(
-                    variant.getProductVariantId(),
-                    variant.getProduct().getProductId(),
-                    variant.getProduct().getProductName(),
-                    variant.getColor(),
-                    variant.getSalePrice(),
-                    variant.getSize(),
-                    variant.getQuantity(),
-                    variant.getSku()
-            );
-
-            SaleItemDTO saleItemDTO = new SaleItemDTO(
-                    variantDTO,
-                    item.getQuantity(),
-                    item.getSalePrice()
-            );
-
-            itemDTOs.add(saleItemDTO);
-            totalAmount = totalAmount.add(item.getSalePrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-        }
+    public List<SaleDTO> getAllSales() {
+        return saleRepository.findAll().stream()
+                .map(saleMapper::toDTO)
+                .toList();
     }
 
-    return new SaleDTO(
-            sale.getId(),
-            sale.getSaleDate(),
-            itemDTOs,
-            totalAmount, // this ensures totalAmount is correct
-            sale.getCustomerName(),
-            sale.getCustomerContact()
-    );
-}
-
-
-    // -------------------------
-    // Fetch all sales
-    // -------------------------
-    public List<Sale> getAllSales() {
-        return saleRepository.findAll();
+    public SaleDTO getSaleById(Long id) {
+        return saleMapper.toDTO(saleRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Sale not found")));
     }
 
-    // -------------------------
-    // Fetch sale by id
-    // -------------------------
-    public Sale getSaleById(Long id) {
-        return saleRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Sale not found"));
-    }
-
-    // -------------------------
-    // Update sale by id , request
-    // -------------------------
     public SaleDTO updateSale(Long saleId, RequestSaleDTO request) {
-    Sale sale = saleRepository.findById(saleId)
-            .orElseThrow(() -> new NotFoundException("Sale not found"));
+        Sale sale = saleRepository.findById(saleId)
+                .orElseThrow(() -> new NotFoundException("Sale not found"));
 
-    // Restore stock for old items
-    if (sale.getItems() != null) {
-        for (SaleItem item : sale.getItems()) {
-            ProductVariant variant = item.getProductVariant();
-            variant.setQuantity(variant.getQuantity() + item.getQuantity());
+        // Restore stock for old items
+        if (sale.getItems() != null) {
+            for (SaleItem item : sale.getItems()) {
+                ProductVariant variant = item.getProductVariant();
+                variant.setQuantity(variant.getQuantity() + item.getQuantity());
+                variantRepository.save(variant);
+            }
+        }
+
+        sale.getItems().clear();
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+
+        for (RequestSaleItemDTO reqItem : request.getItems()) {
+            ProductVariant variant = getVariantOrThrow(reqItem.getProductVariantId());
+
+            if (variant.getQuantity() < reqItem.getQuantity())
+                throw new IllegalArgumentException("Insufficient stock for variant: " + variant.getSku());
+
+            variant.setQuantity(variant.getQuantity() - reqItem.getQuantity());
             variantRepository.save(variant);
-        }
-    }
 
-    // Clear old items from managed collection
-    sale.getItems().clear();
+            SaleItem saleItem = new SaleItem();
+            saleItem.setSale(sale);
+            saleItem.setProductVariant(variant);
+            saleItem.setQuantity(reqItem.getQuantity());
+            saleItem.setSalePrice(reqItem.getSalePrice());
+            sale.getItems().add(saleItem);
 
-    BigDecimal totalAmount = BigDecimal.ZERO;
-
-    for (RequestSaleItemDTO reqItem : request.getItems()) {
-        ProductVariant variant = variantRepository.findById(reqItem.getProductVariantId())
-                .orElseThrow(() -> new NotFoundException("Product variant not found"));
-
-        if (variant.getQuantity() < reqItem.getQuantity()) {
-            throw new IllegalArgumentException("Insufficient stock for variant: " + variant.getSku());
+            totalAmount = totalAmount.add(reqItem.getSalePrice()
+                    .multiply(BigDecimal.valueOf(reqItem.getQuantity())));
         }
 
-        // Reduce stock
-        variant.setQuantity(variant.getQuantity() - reqItem.getQuantity());
-        variantRepository.save(variant);
+        sale.setSaleDate(request.getSaleDate());
+        sale.setCustomerName(request.getCustomerName());
+        sale.setCustomerContact(request.getCustomerContact());
+        sale.setTotalAmount(totalAmount);
+        saleRepository.save(sale);
 
-        // Create sale item
-        SaleItem saleItem = new SaleItem();
-        saleItem.setSale(sale); // 🔑 link to parent
-        saleItem.setProductVariant(variant);
-        saleItem.setQuantity(reqItem.getQuantity());
-        saleItem.setSalePrice(reqItem.getSalePrice()); // only salePrice now
-
-        sale.getItems().add(saleItem); // ✅ add to managed collection
-
-        totalAmount = totalAmount.add(reqItem.getSalePrice()
-                .multiply(BigDecimal.valueOf(reqItem.getQuantity())));
+        return saleMapper.toDTO(sale);
     }
 
-    // Update parent sale fields
-    sale.setSaleDate(request.getSaleDate());
-    sale.setCustomerName(request.getCustomerName());
-    sale.setCustomerContact(request.getCustomerContact());
-    sale.setTotalAmount(totalAmount);
-
-    // Save parent (cascades to items)
-    saleRepository.save(sale);
-
-    return createSaleDTOFromEntity(sale);
-}
-
-    // -------------------------
-    // Delete sale by id
-    // -------------------------
     public void deleteSale(Long id) {
         Sale sale = saleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Sale not found"));
 
-        // Optional: restore stock for each item
         if (sale.getItems() != null) {
             for (SaleItem item : sale.getItems()) {
                 ProductVariant variant = item.getProductVariant();

@@ -1,5 +1,6 @@
 package com.example.tjfw.service;
 
+import com.cloudinary.Transformation;
 import com.example.tjfw.dto.productimage.PhotoUploadResult;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -19,22 +20,30 @@ public class CloudinaryService {
     }
 
     public PhotoUploadResult uploadImage(MultipartFile file, String folder) throws IOException {
-        Map<String, Object> result = cloudinary.uploader().upload(
+
+        Map<?, ?> result = cloudinary.uploader().upload(
                 file.getBytes(),
                 ObjectUtils.asMap(
                         "folder", folder,
                         "resource_type", "image",
-                        "transformation", ObjectUtils.asMap(
-                                "width", 800,
-                                "height", 800,
-                                "crop", "limit",
-                                "quality", "auto"
-                        )
+                        "transformation", new Transformation<>()
+                                .width(800)
+                                .height(800)
+                                .crop("limit")
+                                .quality("auto")
                 )
         );
 
-        String url = result.get("secure_url").toString();
-        String publicId = result.get("public_id").toString();
+        Object secureUrlObj = result.get("secure_url");
+        Object publicIdObj = result.get("public_id");
+
+        if (secureUrlObj == null || publicIdObj == null) {
+            throw new RuntimeException("Cloudinary did not return secure_url or public_id");
+        }
+
+        String url = secureUrlObj.toString();
+        String publicId = publicIdObj.toString();
+        System.out.println("Cloudinary upload result: " + result);
 
         return new PhotoUploadResult(url, publicId);
     }
