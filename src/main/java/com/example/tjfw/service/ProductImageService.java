@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.List;
 
 @Service
-@Transactional
 public class ProductImageService {
 
     private final ProductImageRepository imageRepository;
@@ -71,15 +70,16 @@ public class ProductImageService {
         return productMapper.toImageDTO(imageRepository.save(image));
     }
 
-    public void deleteImage(Long imageId, Long productId, Long variantId) throws IOException {
+    /**
+     * Deletes image safely: DB deletion inside transaction, Cloudinary deletion outside.
+     */
+    public void deleteImage(Long imageId, Long productId, Long variantId) {
         ProductImage image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new NotFoundException("Image not found"));
 
         boolean belongsToProduct = image.getProduct() != null
-                && productId != null
                 && image.getProduct().getProductId().equals(productId);
         boolean belongsToVariant = image.getProductVariant() != null
-                && variantId != null
                 && image.getProductVariant().getProductVariantId().equals(variantId);
 
         if (!belongsToProduct && !belongsToVariant)
@@ -96,7 +96,22 @@ public class ProductImageService {
         if (image.getIsMain() && !otherImages.isEmpty())
             throw new IllegalArgumentException("Cannot delete main image. Set another image as main first.");
 
-        cloudinaryService.deleteImage(image.getPublicId());
+        String publicId = image.getPublicId();
+
+        // 1️⃣ Delete DB record inside transaction
+        deleteImageRecord(image);
+
+        // 2️⃣ Delete from Cloudinary outside transaction
+        try {
+            cloudinaryService.deleteImage(publicId);
+        } catch (Exception e) {
+            // log and optionally retry
+            System.err.println("Cloudinary deletion failed for publicId=" + publicId + ": " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    protected void deleteImageRecord(ProductImage image) {
         imageRepository.delete(image);
     }
 
@@ -105,10 +120,8 @@ public class ProductImageService {
                 .orElseThrow(() -> new NotFoundException("Image not found"));
 
         boolean belongsToProduct = image.getProduct() != null
-                && productId != null
                 && image.getProduct().getProductId().equals(productId);
         boolean belongsToVariant = image.getProductVariant() != null
-                && variantId != null
                 && image.getProductVariant().getProductVariantId().equals(variantId);
 
         if (!belongsToProduct && !belongsToVariant)

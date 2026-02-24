@@ -36,7 +36,7 @@ public class ProductVariantController {
         List<ProductVariantDTO> variants = productVariantService
                 .findAllByProductId(id)
                 .stream()
-                .map(productMapper::toDTO)
+                .map(productMapper::toVariantDTO)
                 .toList();
         return ResponseEntity.ok(new ApiResponse<>("Variants found", variants));
     }
@@ -50,7 +50,7 @@ public class ProductVariantController {
     @GetMapping("/variants/{variantId}")
     public ResponseEntity<ApiResponse<ProductVariantDTO>> getVariant(@PathVariable Long variantId) {
         ProductVariant variant = productVariantService.findProductVariantById(variantId);
-        return ResponseEntity.ok(new ApiResponse<>("Variant found", productMapper.toDTO(variant)));
+        return ResponseEntity.ok(new ApiResponse<>("Variant found", productMapper.toVariantDTO(variant)));
     }
 
     @PostMapping("/{productId}/variants")
@@ -66,7 +66,7 @@ public class ProductVariantController {
                 requestDTO.getSalePrice());
         ProductVariant saved = productVariantService.createNewProductVariant(variant);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>("Variant created", productMapper.toDTO(saved)));
+                .body(new ApiResponse<>("Variant created", productMapper.toVariantDTO(saved)));
     }
 
     @PutMapping("/variants/{variantId}")
@@ -79,7 +79,7 @@ public class ProductVariantController {
         existing.setQuantity(requestDTO.getQuantity());
         existing.setSalePrice(requestDTO.getSalePrice());
         ProductVariant updated = productVariantService.updateProductVariant(existing);
-        return ResponseEntity.ok(new ApiResponse<>("Variant updated", productMapper.toDTO(updated)));
+        return ResponseEntity.ok(new ApiResponse<>("Variant updated", productMapper.toVariantDTO(updated)));
     }
 
     @DeleteMapping("/variants/{variantId}")

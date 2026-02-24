@@ -40,11 +40,7 @@ public class SaleMapper {
                 ? List.of()
                 : sale.getItems().stream().map(this::toItemDTO).toList();
 
-        BigDecimal totalAmount = sale.getItems() == null
-                ? BigDecimal.ZERO
-                : sale.getItems().stream()
-                .map(i -> i.getSalePrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalAmount = sale.getTotalAmount();
 
         return new SaleDTO(
                 sale.getId(),

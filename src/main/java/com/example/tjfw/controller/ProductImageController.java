@@ -56,9 +56,6 @@ public class ProductImageController {
         try {
             imageService.deleteImage(imageId, productId, null);
             return ResponseEntity.ok(new ApiResponse<>("Image deleted successfully", null));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>("Failed to delete image: " + e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>(e.getMessage(), null));
@@ -113,9 +110,6 @@ public class ProductImageController {
         try {
             imageService.deleteImage(imageId, null, variantId);
             return ResponseEntity.ok(new ApiResponse<>("Image deleted successfully", null));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse<>("Failed to delete image: " + e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>(e.getMessage(), null));

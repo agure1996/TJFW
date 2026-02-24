@@ -11,12 +11,15 @@ import com.example.tjfw.exceptions.NotFoundException;
 import com.example.tjfw.repository.ProductVariantRepository;
 import com.example.tjfw.repository.SaleRepository;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
+
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class SaleService {
 
     private final SaleRepository saleRepository;
